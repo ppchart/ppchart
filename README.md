@@ -2,7 +2,7 @@
 
 ### Hi 👋
 
-[http://ppchart.com](PPChart) 是一个 Echart 图表示例收录站点，你可以在这里找到对你有帮助的 Echart 图表代码，也可以进行修改查看实时运行后的图表效果，希望对你有所帮助
+[PPChart](http://ppchart.com) 是一个 Echart 图表示例收录站点，你可以在这里找到对你有帮助的 Echart 图表代码，也可以进行修改查看实时运行后的图表效果，希望对你有所帮助
 
 
 ### PPChart 技术选型
