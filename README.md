@@ -1,16 +1,54 @@
-### Hi there 👋
+![image](https://user-images.githubusercontent.com/99037010/152569183-4bffb8be-6c08-4d2c-8578-f46fd254cf35.png)
 
-<!--
-**ppchart/ppchart** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+### Hi 👋
 
-Here are some ideas to get you started:
+[http://ppchart.com](PPChart) 是一个 Echart 图表示例收录站点，你可以在这里找到对你有帮助的 Echart 图表代码，也可以进行修改查看实时运行后的图表效果，希望对你有所帮助
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+
+### PPChart 技术选型
+- 前端：Vue3 + Vite
+- 后端：Koa + Node + Nginx
+- 数据库：AliRDS(Mysql) + AliRedis(Redis)
+- 存储：AliOSS(存储)
+
+
+### PPChart 背景
+- 这里是 makeapie 的复刻项目
+- 看到 makeapie 停服是失落的，总要找个替代品
+- 希望尽力把这个替代品维护好
+- 目前数据都是 makeapie 的数据，如果有疑问或者建议，可以提 Issues
+
+
+### 更新历程
+- [x] 2022/01/29 数据获取
+- [x] 2022/01/31 后端基础实现
+- [x] 2022/02/03 前端基础实现
+- [x] 2022/02/04 前端部署、后端部署、域名
+- [x] 2022/02/05 Github
+
+
+
+### 关于未来
+- [ ] HTTPS
+- [ ] 账号服务
+- 
+
+
+
+
+### 一些思考
+- 如何提供长久稳定的服务？
+  - 不到最后一步不接收捐助，毕竟数据还用的 makeapie
+  - 会从多渠道尝试收支平衡，具体还没想好，可以听听大家的意见
+  - 前端用 OSS 部署大概率不会挂，后面会尝试后端服务用 serverless 部署或者看情况升级服务器
+  - 会尝试重构所有旧的图表数据来开源到此项目，这样即使服务挂了也不会影响基础数据的访问
+  - 会尝试用 vercel 等免费服务，再部署几个备用站，到时候网址记录在这里
+  - 如果有其它备用站也可以提 Issue，我加在这里
+
+
+### 已知的其它站点
+- 待收录
+
+
+
+
