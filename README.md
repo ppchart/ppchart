@@ -47,15 +47,12 @@
   - 如果有其它备用站也可以提 Issue，我加在这里
 
 
-### 已知的其它站点
-- 待收录
-
-
 ### 特别感谢所有捐助的人，是他们让这个站点生机勃勃
-![wecom-temp-62ef85d3709f5a76454798029480954c](https://user-images.githubusercontent.com/99037010/152575512-a27dbe6a-c0e6-4294-9495-b0388c4f2746.jpg)
-![wecom-temp-3243b274b93caa26a4d2674f7fd55e55](https://user-images.githubusercontent.com/99037010/152575541-8eeb94c9-5cd3-4e1a-9b0f-d06dec2f4e11.jpg)
 
-
+<div style="display:flex">
+  <img src="https://user-images.githubusercontent.com/99037010/152575541-8eeb94c9-5cd3-4e1a-9b0f-d06dec2f4e11.jpg" width="200" height="210" align="bottom" />
+  <img src="https://user-images.githubusercontent.com/99037010/152575512-a27dbe6a-c0e6-4294-9495-b0388c4f2746.jpg" width="200" height="210" align="bottom" />
+</div>
 
 
 
