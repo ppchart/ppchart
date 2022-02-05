@@ -1,12 +1,13 @@
 ![image](https://user-images.githubusercontent.com/99037010/152569183-4bffb8be-6c08-4d2c-8578-f46fd254cf35.png)
 
-### Hi 👋
 
-[PPChart](http://ppchart.com) 是一个 Echart 图表示例收录站点，你可以在这里找到对你有帮助的 Echart 图表代码，也可以进行修改查看实时运行后的图表效果，希望对你有所帮助
+### 站点 ：[PPChart](http://ppchart.com) 
+
 
 ### PPChart 愿景
 - 让图表更简单
 - 助力每个人都可以简单制作想要的图表
+- [PPChart](http://ppchart.com) 是一个图表站点，你可以在这里找到对你有帮助的图表代码，也可以实时调试图表效果
 
 
 ### PPChart 技术选型
