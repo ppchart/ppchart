@@ -49,6 +49,7 @@
 
 ### Ing 正在做的事
 - [ ] **账号服务**
+- [ ] 反馈之前的弹窗版本好用，所以要支持两种方式打开案例
 - [ ] 标记是否可运行起来
 - [ ] 用户新增示例
 - [ ] 代码编辑器：格式化、报错等
@@ -81,14 +82,18 @@
 ### 特别感谢所有捐助的人，是他们让这个站点生机勃勃
 1. 2022-02-08 感谢来自 L*n 的赞助
 2. 2022-02-10 感谢来自 *心 的赞助
-2. 2022-02-11 感谢来自 *ン 的赞助 - 反馈了地图数据无法运行
-
+3. 2022-02-11 感谢来自 *ン 的赞助 - 留言：地图数据无法运行
+4. 2022-02-11 感谢来自 *C 的赞助 - 留言：感谢对前端的贡献
+5. 2022-02-11 感谢来自 *合 的赞助 - 留言：为 ppchart 点赞
 <br />
 
 <div style="display:flex">
   <img src="https://user-images.githubusercontent.com/99037010/153113165-0da0ff85-3d3c-4996-9b1a-b0bfc07d7951.png" width="200" height="133" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/153531217-1b9ccfeb-a300-45c7-9c99-5f23ef4d62d0.png" width="200" height="133" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/153724840-f28e7ebb-0b0d-42e0-bbaa-5be8539e0302.png" width="200" height="133" align="bottom" />
+  <img src="https://user-images.githubusercontent.com/99037010/153828484-cf431917-b3aa-4f8e-8f2d-83fa9dc46252.png" width="200" height="133" align="bottom" />
+  <img src="https://user-images.githubusercontent.com/99037010/153828582-8536070b-e72a-44ee-bc1f-732fb908b781.png" width="200" height="133" align="bottom" />
+
 </div>
 
 <br />
