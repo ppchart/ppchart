@@ -3,7 +3,7 @@
 
 ### 站点 ：[PPChart](http://ppchart.com)   数据：[下载资源](https://github.com/ppchart/ppchart/issues/5)
 
-### 前端代码将在账号服务后的重构完毕后开源至此
+### 🚀 前端代码将在重构完毕后开源至此
 
 
 #### 如有类别/资源等需求还望 Issue 提起
