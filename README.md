@@ -86,6 +86,8 @@
 3. 2022-02-11 感谢来自 *ン 的赞助 - 留言：地图数据无法运行
 4. 2022-02-14 感谢来自 *C 的赞助 - 留言：感谢对前端的贡献
 5. 2022-02-14 感谢来自 *合 的赞助 - 留言：为 ppchart 点赞
+6. 2022-02-17 感谢来自 *昭 的赞助 - 留言：66666
+
 <br />
 
 <div style="display:flex">
@@ -94,7 +96,7 @@
   <img src="https://user-images.githubusercontent.com/99037010/153724840-f28e7ebb-0b0d-42e0-bbaa-5be8539e0302.png" width="200" height="133" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/153828484-cf431917-b3aa-4f8e-8f2d-83fa9dc46252.png" width="200" height="133" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/153828582-8536070b-e72a-44ee-bc1f-732fb908b781.png" width="200" height="133" align="bottom" />
-
+  <img src="https://user-images.githubusercontent.com/99037010/154608658-b1b94eaf-1bad-489d-9d79-81fbbb1dc477.png" width="200" height="133" align="bottom" />
 </div>
 
 <br />
