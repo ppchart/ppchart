@@ -96,7 +96,7 @@
   <img src="https://user-images.githubusercontent.com/99037010/153724840-f28e7ebb-0b0d-42e0-bbaa-5be8539e0302.png" width="200" height="133" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/153828484-cf431917-b3aa-4f8e-8f2d-83fa9dc46252.png" width="200" height="133" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/153828582-8536070b-e72a-44ee-bc1f-732fb908b781.png" width="200" height="133" align="bottom" />
-  <img src="https://user-images.githubusercontent.com/99037010/154608658-b1b94eaf-1bad-489d-9d79-81fbbb1dc477.png" width="200" height="133" align="bottom" />
+  <img src="https://user-images.githubusercontent.com/99037010/154608658-b1b94eaf-1bad-489d-9d79-81fbbb1dc477.png" width="250" height="140" align="bottom" />
 </div>
 
 <br />
