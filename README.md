@@ -50,6 +50,7 @@
 - [x] 2022/02/16 使用 [Issue 7](https://github.com/ppchart/ppchart/issues/7) 提到的传参方式增加了 $ 依赖，让更多数据可以跑起来
 - [x] 2022/02/25 使用 nginx 代理 OSS 静态资源、去掉了图片水印
 - [x] 2022/03/06 修复代码编辑器报错问题、支持编辑器格式化代码、支持切换 echarts 版本
+- [] 2022/03/10 最近在折腾腾讯出的单点登录系统（CIAM），期望在独立开发的系统里有一个单点登录套路
 
 
 ### Ing 正在做的事
@@ -91,6 +92,7 @@
 5. 2022-02-14 感谢来自 *合 的赞助 - 留言：为 ppchart 点赞
 6. 2022-02-17 感谢来自 *昭 的赞助 - 留言：66666
 7. 2022-02-24 感谢来自 *也 的赞助 - 留言：💪
+8. 2022-03-10 感谢来自 *富 的赞助 - 留言：66666
 
 <br />
 
@@ -102,6 +104,7 @@
   <img src="https://user-images.githubusercontent.com/99037010/153828582-8536070b-e72a-44ee-bc1f-732fb908b781.png" width="200" height="133" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/154608658-b1b94eaf-1bad-489d-9d79-81fbbb1dc477.png" width="250" height="140" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/155449530-72903be4-2397-41e5-b5c1-d23c5da6601a.png" width="200" height="133" align="bottom" />
+  <img src="https://user-images.githubusercontent.com/99037010/158529183-1dafed1b-62fd-403a-bb49-964b71e2fcbb.png" width="250" height="140" align="bottom" />
 
 
 </div>
