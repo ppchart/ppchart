@@ -96,6 +96,9 @@
 6. 2022-02-17 感谢来自 *昭 的赞助 - 留言：66666
 7. 2022-02-24 感谢来自 *也 的赞助 - 留言：💪
 8. 2022-03-10 感谢来自 *富 的赞助 - 留言：66666
+9. 2022-04-22 感谢来自 *ฅ 的赞助 - 留言：ppchart 666
+10. 2022-04-25 感谢来自 *合 的赞助 - 留言：ppchart赞，喝杯咖啡
+11. 2022-08-10 感谢来自 *👹 的赞助 - 留言：66666
 
 <br />
 
@@ -108,9 +111,9 @@
   <img src="https://user-images.githubusercontent.com/99037010/154608658-b1b94eaf-1bad-489d-9d79-81fbbb1dc477.png" width="250" height="140" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/155449530-72903be4-2397-41e5-b5c1-d23c5da6601a.png" width="200" height="133" align="bottom" />
   <img src="https://user-images.githubusercontent.com/99037010/158529183-1dafed1b-62fd-403a-bb49-964b71e2fcbb.png" width="250" height="140" align="bottom" />
-
-
-</div>
+  <img src="https://user-images.githubusercontent.com/99037010/191048237-3d1eb591-70c3-4081-bdcb-a531850a03a4.png" width="200" height="133" align="bottom" />
+  <img src="https://user-images.githubusercontent.com/99037010/191048366-175353d9-4898-46ed-b6b1-5a7d53df35b3.png" width="200" height="133" align="bottom" />
+  <img src="https://user-images.githubusercontent.com/99037010/191048514-ed469006-807a-43fa-9e07-fac50af8b310.png" width="200" height="133" align="bottom" />
 
 <br />
 <br />
