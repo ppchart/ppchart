@@ -1,0 +1,24 @@
+{
+  "name": "client",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build-test": "vite build --mode test",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^0.25.0",
+    "moment": "^2.29.1",
+    "monaco-editor": "^0.32.1",
+    "prettier": "^2.5.1",
+    "sass": "^1.49.4",
+    "vue": "^3.2.41",
+    "vue-router": "4"
+  },
+  "devDependencies": {
+    "@arco-design/web-vue": "^2.16.2",
+    "@vitejs/plugin-vue": "^2.0.0",
+    "vite": "^2.9.15"
+  }
+}
