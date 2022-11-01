@@ -1,7 +1,7 @@
 ![image](https://user-images.githubusercontent.com/99037010/152569183-4bffb8be-6c08-4d2c-8578-f46fd254cf35.png)
 
 
-### 站点 ：[PPChart](http://ppchart.com)   数据：[下载资源](https://github.com/ppchart/ppchart/issues/5)
+### 站点 ：[PPChart](https://ppchart.com)   数据：[下载资源](https://github.com/ppchart/ppchart/issues/5)
 
 ### 🚀 前端代码将在重构完毕后开源至此
 - 03-22 正在重构了
