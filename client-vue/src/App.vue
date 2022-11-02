@@ -2,7 +2,6 @@
 import { LayoutContent, Layout } from "@arco-design/web-vue";
 import Header from '@/modules/header/Header.vue'
 import { onMounted, reactive, } from "vue";
-import Bus from "@/bus";
 import Gitter from '@/components/gitter/Gitter.vue'
 import MonocoInit from '@/components/monoco/init.vue'
 
@@ -16,10 +15,6 @@ onMounted(() => {
   if (import.meta.env.MODE !== "development") {
     // sp();
   }
-  // 接收搜索 loading 变化事件
-  Bus.$on("search-loading", (loading) => {
-    searchData.loading = loading;
-  });
 });
 </script>
 <template>
@@ -62,10 +57,6 @@ body {
   // }
 }
 
-// .pagination {
-//   display: flex;
-//   justify-content: end;
-// }
 
 body[arco-theme="dark"] {
   --color-logo: var(--color-text-1);

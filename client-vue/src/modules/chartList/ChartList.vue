@@ -3,7 +3,7 @@ import { Message } from "@arco-design/web-vue";
 import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import axios from "axios";
 import moment from "moment";
-import Bus from "../bus";
+import Bus from "@/bus";
 import { useRouter } from "vue-router";
 import {
   Spin,
@@ -14,10 +14,9 @@ import {
   Descriptions,
 } from "@arco-design/web-vue";
 import { IconShareInternal } from "@arco-design/web-vue/es/icon";
-import { getAxiosBase, getOssBase } from "../utils";
+import { getAxiosBase, getOssBase } from "@/utils";
 
 const axiosBase = getAxiosBase()
-// const ossBase = "http://ppchart-assets-1253318964.cos.ap-shanghai.myqcloud.com";
 const ossBase = getOssBase()
 const thumbnailBase = `${ossBase}/ecg-storage/ec_gallery_thumbnail`;
 
@@ -83,10 +82,10 @@ onBeforeUnmount(() => {
   Bus.$off("search-loading");
 });
 
-const emit = defineEmits(["chartClick"]);
+const emits = defineEmits(["chartClick"]);
 
 const chartClick = async (cid) => {
-  emit("chartClick", cid);
+  emits("chartClick", cid);
 };
 
 const pageChange = (pageIndex) => {
@@ -139,7 +138,12 @@ const openTab = (cid) => {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.pagination {
+  display: flex;
+  justify-content: end;
+}
+
 .chart-card {
   .arco-card-body {
     padding: 8px 8px 0 8px !important;

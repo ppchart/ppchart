@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, onBeforeUnmount } from "vue";
+import { computed, reactive, onBeforeUnmount, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { InputSearch } from "@arco-design/web-vue";
 
@@ -28,9 +28,15 @@ const searchData = reactive({
 const searchClick = () => {
     Bus.$emit("home-search", searchData.content);
 };
-
+onMounted(() => {
+    // 接收搜索 loading 变化事件
+    Bus.$on("search-loading", (loading) => {
+        searchData.loading = loading;
+    });
+})
 onBeforeUnmount(() => {
     Bus.$off("home-search");
+    Bus.$off("search-loading");
 });
 
 </script>
