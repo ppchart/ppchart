@@ -1,16 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref, } from "vue";
 import { IconSunFill, IconMoonFill } from "@arco-design/web-vue/es/icon";
-
+type ThemeType = 'light' | 'dark'
 const size = 24
 const theme = ref("light");
-const themeChange = (value) => {
+const themeChange = (value: ThemeType) => {
     theme.value = value;
     localStorage.setItem("theme", value);
     themeJudge(value);
 };
 
-const themeJudge = (theme) => {
+const themeJudge = (theme: ThemeType) => {
     if (theme === "dark") {
         document.body.setAttribute("arco-theme", "dark");
     } else {
@@ -21,7 +21,7 @@ const themeJudge = (theme) => {
 // 加载数据
 onMounted(() => {
     // 主题色初始化
-    const themeValue = localStorage.getItem("theme") || "light";
+    const themeValue = localStorage.getItem("theme") as (ThemeType | null) || "light";
     themeJudge(themeValue);
     theme.value = themeValue;
 });

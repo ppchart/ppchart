@@ -1,12 +1,5 @@
-<script setup>
-import {
-    computed,
-    nextTick,
-    onBeforeUnmount,
-    onMounted,
-    reactive,
-    ref,
-} from "vue";
+<script setup lang="ts">
+import { onMounted, reactive, } from "vue";
 import axios from "axios";
 import { getAxiosBase } from "@/utils";
 
@@ -30,9 +23,9 @@ onMounted(() => {
             } else throw new Error("error");
         })
         .catch(() => {
-            visitNumber.UV = UV;
-            visitNumber.online = online;
-            visitNumber.threeUV = threeUV;
+            visitNumber.UV = 0;
+            visitNumber.online = 0;
+            visitNumber.threeUV = 0;
         });
 })
 </script>

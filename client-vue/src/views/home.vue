@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import ChartTypeGroup from '@/modules/chartTypeGroup/ChartTypeGroup.vue';
 import { Modal } from "@arco-design/web-vue";
 import Bus from "@/bus";
@@ -16,16 +16,16 @@ const categoryList = ref([
 ]);
 
 const tabData = reactive({ currentType: "全部" });
-const tabChange = (typeName) => {
+const tabChange = (typeName: string) => {
   const tabItem = categoryList.value.find((item) => item.name === typeName);
-  tabItem.show = true;
+  if (tabItem) tabItem.show = true;
 };
 const props = defineProps({
   searchData: String,
 });
 const chartDetail = reactive({
   visible: false,
-  cid: null,
+  cid: '',
   handleOk: () => {
     chartDetail.visible = false;
   },
@@ -38,7 +38,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   Bus.$off("search-loading");
 });
-const chartClick = (cid) => {
+const chartClick = (cid: string) => {
   chartDetail.cid = cid;
   chartDetail.visible = true;
 };
@@ -53,14 +53,8 @@ const chartClick = (cid) => {
           @chartClick="chartClick"></ChartList>
       </div>
     </template>
-    <Modal
-      width="100%"
-      v-model:visible="chartDetail.visible"
-      @ok="chartDetail.handleOk"
-      :hide-cancel="true"
-      ok-text="关闭"
-      :unmount-on-close="true"
-    >
+    <Modal width="100%" v-model:visible="chartDetail.visible" @ok="chartDetail.handleOk" :hide-cancel="true"
+      ok-text="关闭" :unmount-on-close="true">
       <template #title> 示例详情 </template>
       <div style="height: calc(100vh - 48px - 65px)">
         <!-- <ChartDetail :cid="chartDetail.cid"></ChartDetail> -->

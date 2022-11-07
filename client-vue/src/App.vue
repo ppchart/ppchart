@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { LayoutContent, Layout } from "@arco-design/web-vue";
 import Header from '@/modules/header/Header.vue'
 import { onMounted, reactive, } from "vue";
@@ -17,6 +17,7 @@ onMounted(() => {
   }
 });
 </script>
+
 <template>
   <Layout style="height: calc(100% - 60px); padding-top: 60px">
     <Header :pageLoaded="pageData.loaded"></Header>

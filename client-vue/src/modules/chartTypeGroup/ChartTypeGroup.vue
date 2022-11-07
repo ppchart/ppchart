@@ -1,5 +1,4 @@
-<script setup>
-import { defineProps } from "vue";
+<script setup lang="ts">
 import { CHART_TYPE_GROUP } from './constants'
 import { RadioGroup, Radio } from "@arco-design/web-vue";
 import useModel from '@/hooks/useModel'
@@ -7,7 +6,7 @@ import useModel from '@/hooks/useModel'
 const props = defineProps({
     modelValue: String,
 });
-const emits = defineEmits()
+const emits = defineEmits(['change'])
 const modelValue = useModel(props)
 </script>
 <template>

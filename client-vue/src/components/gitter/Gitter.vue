@@ -1,9 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { nextTick, reactive, ref, } from "vue";
 import { Spin, Drawer } from "@arco-design/web-vue";
 
 const chatRef = ref(null);
-const settimeoutRef = ref(null)
+const settimeoutRef = ref<NodeJS.Timeout | null>(null)
 
 const chatData = reactive({
     visible: false,
@@ -14,7 +14,7 @@ const chatData = reactive({
 });
 const mustCloseWhenDelay = () => {
     if (settimeoutRef.value) {
-        clearTimeout(settimeoutRef)
+        clearTimeout(settimeoutRef.value)
     }
     nextTick(() => {
         settimeoutRef.value = setTimeout(() => {

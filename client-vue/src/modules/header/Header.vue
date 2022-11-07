@@ -1,13 +1,13 @@
-<script setup>
-import { computed, reactive, onBeforeUnmount, onMounted } from "vue";
+<script setup lang="ts">
 import { useRoute } from "vue-router";
 import { InputSearch } from "@arco-design/web-vue";
+import { computed, reactive, onBeforeUnmount, onMounted } from "vue";
 
 import Bus from "@/bus";
 import Logo from '@/components/logo/Logo.vue'
-import Github from '@/components/github/Github.vue'
-import Online from '@/modules/online/Online.vue'
 import Theme from '@/modules/theme/Theme.vue'
+import Online from '@/modules/online/Online.vue'
+import Github from '@/components/github/Github.vue'
 
 const props = defineProps({
     pageLoaded: Boolean,
@@ -16,11 +16,12 @@ const props = defineProps({
 // 搜索输入框
 const route = useRoute();
 const isMobile = navigator.userAgent.match(/mobile/i);
-const showSearch = computed({
-    get: () => {
+const showSearch = computed<boolean>(
+    () => {
+        if (typeof route.name !== 'string') return false
         return !isMobile && ["home"].includes(route.name) && props.pageLoaded;
     },
-});
+);
 const searchData = reactive({
     loading: false,
     content: "",
@@ -30,7 +31,7 @@ const searchClick = () => {
 };
 onMounted(() => {
     // 接收搜索 loading 变化事件
-    Bus.$on("search-loading", (loading) => {
+    Bus.$on("search-loading", (loading: boolean) => {
         searchData.loading = loading;
     });
 })
