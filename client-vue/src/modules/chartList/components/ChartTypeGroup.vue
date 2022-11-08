@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CHART_TYPE_GROUP } from './constants'
+import { CHART_TYPE_GROUP } from '../constants'
 import { RadioGroup, Radio } from "@arco-design/web-vue";
 import useModel from '@/hooks/useModel'
 

@@ -1,11 +1,16 @@
+<script lang="ts">
+export default {
+  name: 'home',
+}
+</script>
 <script setup lang="ts">
-import ChartTypeGroup from '@/modules/chartTypeGroup/ChartTypeGroup.vue';
+import ChartTypeGroup from '@/modules/chartList/components/ChartTypeGroup.vue';
 import { Modal } from "@arco-design/web-vue";
 import Bus from "@/bus";
 import ChartList from "@/modules/chartList/ChartList.vue";
 // import ChartDetail from "./chart-detail.vue";
-import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
-import { CHART_TYPE_ALL } from '@/modules/chartTypeGroup/constants'
+import { onBeforeUnmount, onMounted, reactive, ref, defineComponent } from "vue";
+import { CHART_TYPE_ALL } from '@/modules/chartList/constants'
 
 const categoryList = ref([
   ...CHART_TYPE_ALL.map((name, index) => ({

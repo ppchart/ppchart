@@ -1,5 +1,5 @@
-<script setup>
-import { Message } from "@arco-design/web-vue";
+<script setup lang="ts">
+import { DescData, Message } from "@arco-design/web-vue";
 import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import axios from "axios";
 import moment from "moment";
@@ -14,24 +14,22 @@ import {
   Descriptions,
 } from "@arco-design/web-vue";
 import { IconShareInternal } from "@arco-design/web-vue/es/icon";
-import { getAxiosBase, getOssBase } from "@/utils";
+import config from "@/config";
 
-const axiosBase = getAxiosBase()
-const ossBase = getOssBase()
-const thumbnailBase = `${ossBase}/ecg-storage/ec_gallery_thumbnail`;
+const thumbnailBase = `${config.ossBase}/ecg-storage/ec_gallery_thumbnail`;
 
 const props = defineProps({
   type: String,
 });
 
 const chartData = reactive({
-  chartList: [],
+  chartList: [] as Array<{ title: string, thumbnailURL: string, cid: string, _desc: DescData[] }>,
   total: 0,
   pageIndex: 1,
   loading: false,
 });
 
-const convertTime = (timeStr) => {
+const convertTime = (timeStr: string) => {
   return moment(moment.utc(timeStr).toDate()).format("YYYY-DD-MM");
 };
 
@@ -40,12 +38,12 @@ const getData = () => {
   Bus.$emit("search-loading", true);
   axios
     .get(
-      `${axiosBase}/api/chart-list?current=${chartData.pageIndex}&type=${props.type}&search=${searchValue.value}`
+      `${config.axiosBase}/api/chart-list?current=${chartData.pageIndex}&type=${props.type}&search=${searchValue.value}`
     )
     .then((res) => {
       const { code, chartList, message, total } = res.data;
       if (code === 0) {
-        chartData.chartList = chartList.map((item) => {
+        chartData.chartList = chartList.map((item: any) => {
           item.thumbnailURL = `${thumbnailBase}/${item.cid}.jpg`;
           item._desc = [
             { value: convertTime(item.createTime), label: "创建时间" },
@@ -65,8 +63,6 @@ const getData = () => {
     });
 };
 
-const isMobile = navigator.userAgent.match(/mobile/i);
-
 const searchValue = ref("");
 onMounted(() => {
   getData();
@@ -84,16 +80,16 @@ onBeforeUnmount(() => {
 
 const emits = defineEmits(["chartClick"]);
 
-const chartClick = async (cid) => {
+const chartClick = async (cid: string) => {
   emits("chartClick", cid);
 };
 
-const pageChange = (pageIndex) => {
+const pageChange = (pageIndex: number) => {
   chartData.pageIndex = pageIndex;
   getData();
 };
 const router = useRouter();
-const openTab = (cid) => {
+const openTab = (cid: string) => {
   const url = router.resolve({ name: "chart-detail", params: { cid } });
   window.open(url.href, "_blank");
 };
@@ -104,7 +100,7 @@ const openTab = (cid) => {
     <Spin style="width: 100%; min-height: 300px" :loading="chartData.loading" tip="加载中，请稍后...">
       <Card :bordered="false" :style="{ width: '100%', backgroundColor: 'var(--color-bg-5)' }">
         <CardGrid v-for="(item, index) in chartData.chartList" class="chart-card" :key="index" :style="{
-          width: `${isMobile ? 'calc(100% - 16px)' : 'calc(20% - 16px)'}`,
+          width: `${config.isMobileApp ? 'calc(100% - 16px)' : 'calc(20% - 16px)'}`,
           cursor: 'pointer',
           margin: '12px 8px',
           backgroundColor: 'var(--color-bg-2)',
@@ -133,7 +129,7 @@ const openTab = (cid) => {
     </Spin>
     <div class="pagination">
       <Pagination :total="chartData.total" show-total @change="pageChange" :disabled="chartData.loading"
-        page-size="20" />
+        :page-size="20" />
     </div>
   </div>
 </template>

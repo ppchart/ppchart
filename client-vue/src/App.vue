@@ -1,26 +1,14 @@
 <script setup lang="ts">
 import { LayoutContent, Layout } from "@arco-design/web-vue";
+
 import Header from '@/modules/header/Header.vue'
-import { onMounted, reactive, } from "vue";
 import Gitter from '@/components/gitter/Gitter.vue'
 import MonocoInit from '@/components/monoco/init.vue'
-
-const pageData = reactive({
-  loaded: false,
-});
-
-// 加载数据
-onMounted(() => {
-  pageData.loaded = true;
-  if (import.meta.env.MODE !== "development") {
-    // sp();
-  }
-});
 </script>
 
 <template>
   <Layout style="height: calc(100% - 60px); padding-top: 60px">
-    <Header :pageLoaded="pageData.loaded"></Header>
+    <Header></Header>
     <LayoutContent class="content">
       <router-view></router-view>
     </LayoutContent>

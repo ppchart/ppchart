@@ -1,14 +1,3 @@
-const BASE_API = import.meta.env.VITE_APP_BASE_API;
-
-export const getAxiosBase = () => {
-    return window.location.protocol + '//' + BASE_API
-}
-
-export const getOssBase = () => {
-    return window.location.protocol + '//' + import.meta.env.VITE_APP_OSS_DOMAIN;
-}
-
-
 const sp = () => {
     window.oncontextmenu = function () {
         // event.preventDefault(); // 阻止默认事件行为

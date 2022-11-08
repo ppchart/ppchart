@@ -9,27 +9,26 @@ import Theme from '@/modules/theme/Theme.vue'
 import Online from '@/modules/online/Online.vue'
 import Github from '@/components/github/Github.vue'
 
-const props = defineProps({
-    pageLoaded: Boolean,
-});
+import { isSearchEnabled } from "./queries";
 
 // 搜索输入框
-const route = useRoute();
-const isMobile = navigator.userAgent.match(/mobile/i);
-const showSearch = computed<boolean>(
-    () => {
-        if (typeof route.name !== 'string') return false
-        return !isMobile && ["home"].includes(route.name) && props.pageLoaded;
-    },
-);
+const pageData = reactive({
+    loaded: false,
+});
 const searchData = reactive({
     loading: false,
     content: "",
 });
+const route = useRoute();
+const showSearch = computed<boolean>(
+    () => isSearchEnabled(pageData.loaded, route.name)
+);
 const searchClick = () => {
     Bus.$emit("home-search", searchData.content);
 };
+
 onMounted(() => {
+    pageData.loaded = true;
     // 接收搜索 loading 变化事件
     Bus.$on("search-loading", (loading: boolean) => {
         searchData.loading = loading;
