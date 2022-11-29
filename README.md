@@ -140,3 +140,6 @@
 
 (大误,因为入口还在阿里云，费用变为了 ￥2+￥0.2=￥2.2, 哭)
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ppchart/ppchart&type=Date)](https://star-history.com/#ppchart/ppchart&Date)
