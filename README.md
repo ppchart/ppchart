@@ -135,4 +135,4 @@
 ### Visitors Count
 
 
-<img align="left" src = "[https://profile-counter.glitch.me/vue-fastapi-admin/count.svg](https://count.getloli.com/get/@ppchart?theme=asoul)" alt="Loading">
+<img align="left" src="https://count.getloli.com/get/@ppchart?theme=asoul" alt="Loading">
