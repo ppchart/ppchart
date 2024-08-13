@@ -131,3 +131,8 @@
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=ppchart/ppchart&type=Date)](https://star-history.com/#ppchart/ppchart&Date)
+
+### Visitors Count
+
+
+<img align="left" src = "[https://profile-counter.glitch.me/vue-fastapi-admin/count.svg](https://count.getloli.com/get/@ppchart?theme=asoul)" alt="Loading">
