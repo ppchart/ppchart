@@ -2,8 +2,7 @@
 import { LayoutContent, Layout } from "@arco-design/web-vue";
 
 import Header from '@/modules/header/Header.vue'
-import Gitter from '@/components/gitter/Gitter.vue'
-import MonocoInit from '@/components/monoco/init.vue'
+import MonocoInit from '@/components/monoco/Init.vue'
 </script>
 
 <template>
@@ -12,7 +11,6 @@ import MonocoInit from '@/components/monoco/init.vue'
     <LayoutContent class="content">
       <router-view></router-view>
     </LayoutContent>
-    <Gitter></Gitter>
     <MonocoInit></MonocoInit>
   </Layout>
 </template>

@@ -2,6 +2,7 @@
 import { onMounted, reactive, } from "vue";
 import axios from "axios";
 import config from "@/config";
+import request from '@/utils/request'
 
 const visitNumber = reactive({
     UV: 0,
@@ -10,8 +11,8 @@ const visitNumber = reactive({
 });
 
 onMounted(() => {
-    axios
-        .get(`${config.axiosBase}/api/visit`)
+    request
+        .get(`/api/visit`)
         .then((res) => {
             const { code, online, UV, threeUV } = res.data;
             if (code === 0) {

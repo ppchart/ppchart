@@ -15,6 +15,7 @@ import {
 } from "@arco-design/web-vue";
 import { IconShareInternal } from "@arco-design/web-vue/es/icon";
 import config from "@/config";
+import request from '@/utils/request'
 
 const thumbnailBase = `${config.ossBase}/ecg-storage/ec_gallery_thumbnail`;
 
@@ -36,9 +37,9 @@ const convertTime = (timeStr: string) => {
 const getData = () => {
   chartData.loading = true;
   Bus.$emit("search-loading", true);
-  axios
+  request
     .get(
-      `${config.axiosBase}/api/chart-list?current=${chartData.pageIndex}&type=${props.type}&search=${searchValue.value}`
+      `/api/chart-list?current=${chartData.pageIndex}&type=${props.type}&search=${searchValue.value}`
     )
     .then((res) => {
       const { code, chartList, message, total } = res.data;
