@@ -1,3 +1,37 @@
+# PPChart
+
+> 当前分支是新版公开前端重建入口，直接对接现有 chart server：`https://api.ppmark.cn/chart/api`。
+
+## 本地开发
+
+```bash
+npm install
+npm run dev
+```
+
+## 构建
+
+```bash
+npm run build
+```
+
+## 环境变量
+
+默认 API 地址已经指向线上 chart server。如需切换：
+
+```bash
+VITE_API_BASE=https://api.ppmark.cn/chart/api
+```
+
+## 新版前端范围
+
+- 图表列表、分类、搜索、分页
+- 图表详情与代码查看
+- Monaco Editor 在线编辑
+- iframe 沙箱内 ECharts 预览，避免历史图表代码直接运行在主页面
+
+---
+
 ![image](https://user-images.githubusercontent.com/99037010/152569183-4bffb8be-6c08-4d2c-8578-f46fd254cf35.png)
 
 

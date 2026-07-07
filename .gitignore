@@ -1,1 +1,5 @@
-t
+node_modules
+dist
+.DS_Store
+.env.local
+.env.*.local
