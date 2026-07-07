@@ -17,13 +17,14 @@ const REQUIRED_CONTIGUOUS_RENDERED_CHARTS = 10;
 const MAX_CHARTS_TO_SCAN_PER_CATEGORY = 20;
 
 const candidateCategories = [
-  { label: '饼图', value: '2' },
-  { label: '柱状图', value: '3' },
-  { label: '折线图', value: '1' },
+  { label: 'Beta 可运行', value: 'beta' },
+  { label: '饼图', value: '3' },
+  { label: '柱状图', value: '4' },
+  { label: '折线图', value: '2' },
   { label: '仪表盘', value: '21' },
-  { label: '雷达图', value: '8' },
+  { label: '雷达图', value: '9' },
   { label: '散点图', value: '19' },
-  { label: '漏斗图', value: '10' }
+  { label: '漏斗图', value: '11' }
 ];
 
 test('连续至少十个图表详情可以无错误渲染', async ({ page, request }, testInfo) => {
