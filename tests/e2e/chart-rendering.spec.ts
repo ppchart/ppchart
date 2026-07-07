@@ -5,7 +5,7 @@ import { expect, type Page, test } from '@playwright/test';
 
 interface ChartSummary {
   cid: string;
-  title: string;
+  title: string | null;
 }
 
 interface ChartListResponse {
@@ -54,9 +54,7 @@ test('连续至少十个图表详情可以无错误渲染', async ({ page, reque
     expect(payload.chartList.length).toBeGreaterThanOrEqual(REQUIRED_CONTIGUOUS_RENDERED_CHARTS);
 
     await page.getByRole('button', { name: category.label }).click();
-    await expect(
-      page.locator('.chart-card').first().getByRole('button', { name: payload.chartList[0].title }).last()
-    ).toBeVisible();
+    await expect(page.locator('.chart-card').first().locator('.chart-title')).toHaveText(payload.chartList[0].title);
 
     consecutive.length = 0;
 
@@ -103,9 +101,10 @@ test('连续至少十个图表详情可以无错误渲染', async ({ page, reque
 });
 
 async function verifyChart(page: Page, chart: ChartSummary, index: number) {
+  const displayTitle = chart.title || '未命名图表';
   const article = page.locator('.chart-card').nth(index);
-  await article.getByRole('button', { name: chart.title }).last().click();
-  await expect(page.getByRole('heading', { name: chart.title })).toBeVisible();
+  await article.locator('.chart-title').click();
+  await expect(page.locator('.detail-header h2')).toHaveText(displayTitle);
   await expect(page.getByRole('textbox', { name: 'Editor content' })).toBeVisible();
 
   const previewFrame = page.frameLocator('iframe[title="图表预览"]');
@@ -127,13 +126,13 @@ async function verifyChart(page: Page, chart: ChartSummary, index: number) {
   const result = {
     index,
     cid: chart.cid,
-    title: chart.title,
+    title: displayTitle,
     rendered: errorText.length === 0 && hasCanvasSize,
     reason: errorText || (hasCanvasSize ? 'ok' : 'canvas 尺寸异常')
   };
 
   await page.getByRole('button', { name: '关闭详情' }).click();
-  await expect(page.getByRole('heading', { name: chart.title })).toHaveCount(0);
+  await expect(page.locator('.detail-drawer')).toHaveCount(0);
 
   return result;
 }
