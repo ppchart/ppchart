@@ -35,11 +35,13 @@ async function requestJson<T>(path: string, params?: Record<string, string | num
 export async function fetchChartList(input: {
   page: number;
   type: string;
+  runtime: string;
   search: string;
 }): Promise<{ items: ChartSummary[]; total: number }> {
   const payload = await requestJson<ChartListResponse>('/chart-list', {
     current: input.page,
     type: input.type,
+    runtime: input.runtime,
     search: input.search.trim()
   });
 
@@ -76,7 +78,23 @@ export async function fetchVisitStats(): Promise<VisitStats | null> {
     return null;
   }
 
-  return payload.visitNumber || null;
+  if (payload.visitNumber) {
+    return payload.visitNumber;
+  }
+
+  if (
+    typeof payload.online === 'number' &&
+    typeof payload.threeUV === 'number' &&
+    typeof payload.UV === 'number'
+  ) {
+    return {
+      online: payload.online,
+      threeUV: payload.threeUV,
+      UV: payload.UV
+    };
+  }
+
+  return null;
 }
 
 function normalizeSummary(item: ChartSummary): ChartSummary {

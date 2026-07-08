@@ -36,4 +36,7 @@ export interface VisitResponse {
   code: number;
   message?: string;
   visitNumber?: VisitStats;
+  online?: number;
+  threeUV?: number;
+  UV?: number;
 }

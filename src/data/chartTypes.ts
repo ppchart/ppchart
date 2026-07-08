@@ -3,8 +3,14 @@ export interface ChartTypeOption {
   value: string;
 }
 
+export type RuntimeFilter = 'runnable' | 'unrunnable';
+
+export const runtimeFilters: Array<{ label: string; value: RuntimeFilter }> = [
+  { label: '可运行', value: 'runnable' },
+  { label: '不可运行', value: 'unrunnable' }
+];
+
 export const chartTypes: ChartTypeOption[] = [
-  { label: 'Beta 可运行', value: 'beta' },
   { label: '全部', value: '' },
   { label: '折线图', value: '2' },
   { label: '饼图', value: '3' },
