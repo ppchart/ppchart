@@ -1,6 +1,0 @@
-User-agent: *
-Sitemap: http://ppchart.com/index.html
-User-agent: Wandoujia Spider
-User-agent: Baiduspider
-User-agent: Mediapartners-Google
-
