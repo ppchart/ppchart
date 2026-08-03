@@ -1,0 +1,18 @@
+FROM node:14.18-bullseye
+
+WORKDIR /app
+
+ENV NODE_ENV production
+
+USER root
+
+COPY . .
+
+RUN yarn
+
+RUN npx prisma generate
+
+EXPOSE 7777
+
+# CMD ["yarn", "start"]
+CMD ["npx", "pm2-runtime", "start", "ecosystem.config.js", "--env", "production"]

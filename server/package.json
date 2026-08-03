@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "cross-env NODE_ENV=development nodemon server.js",
+    "docker": "docker build -t ppchart-server:latest -f dockerfile .",
+    "docker-test": "docker build -t ppchart-server:test -f dockerfile.test .",
+    "sync-runnable": "node scripts/sync-runnable-charts.js"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "prisma": "^3.8.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^3.8.1",
+    "ciam-node-sdk": "^1.1.1",
+    "dotenv": "^16.0.0",
+    "getmac": "^5.20.0",
+    "ioredis": "^4.28.3",
+    "koa": "^2.13.4",
+    "koa-router": "^10.1.1",
+    "koa2-cors": "^2.0.6",
+    "lodash": "^4.17.21",
+    "nodemon": "2.0.7",
+    "pm2": "^5.1.2"
+  }
+}

@@ -1,0 +1,79 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model chart {
+  id                Int       @id @default(autoincrement())
+  authorUserName    String?   @db.VarChar(255)
+  echartsVersion    String?   @db.VarChar(255)
+  externalScripts   String?   @db.LongText
+  theme             String?   @db.VarChar(255)
+  updaterUID        String?   @db.VarChar(255)
+  updaterUserName   String?   @db.VarChar(255)
+  layout            String?   @db.VarChar(255)
+  alwaysLatest      Int?
+  latestVersion     Int?
+  parentVersion     Int?
+  publishedVersion  Int?
+  versionCreateTime DateTime? @db.DateTime(0)
+  code              String?   @db.LongText
+  html              String?   @db.LongText
+  authorUid         String?   @db.VarChar(255)
+  isStared          Int?
+  avatar            String?   @db.VarChar(255)
+  userName          String?   @db.VarChar(255)
+  isCustomThumbnail Int?
+  thumbnailURL      String?   @db.VarChar(255)
+  isSpam            Int?
+  forkFrom          String?   @db.VarChar(255)
+  rankScore         Float?
+  viewCount         Int?
+  commentCount      Int?
+  starCount         Int?
+  uid               String?   @db.VarChar(255)
+  cid               String?   @unique(map: "cid_index") @db.VarChar(100)
+  version           Int?
+  createTime        DateTime? @db.DateTime(0)
+  lastUpdateTime    DateTime? @db.DateTime(0)
+  title             String?   @db.VarChar(255)
+  auth              Int?
+  description       String?   @db.Text
+  tags              mid[]
+}
+
+model mid {
+  id        Int    @id @default(autoincrement())
+  chart_id  Int?
+  tag_id    Int?
+  is_custom Int?
+  chart     chart? @relation(fields: [chart_id], references: [id], onDelete: NoAction)
+  tag       tag?   @relation(fields: [tag_id], references: [id], onDelete: NoAction)
+
+  @@index([chart_id], map: "mid_chart_id_fkey")
+  @@index([tag_id], map: "mid_tag_id_fkey")
+}
+
+model tag {
+  id     Int     @id @default(autoincrement())
+  name   String? @db.VarChar(255)
+  charts mid[]
+}
+
+model mac {
+  count Int    @default(0)
+  id    Int    @id @default(autoincrement())
+  mac   String @unique(map: "mac_index") @db.VarChar(30)
+  black Int    @default(0)
+}
+
+model black {
+  id          Int      @id @default(autoincrement())
+  mac         String   @db.VarChar(20)
+  update_time DateTime @default(now()) @db.DateTime(0)
+}

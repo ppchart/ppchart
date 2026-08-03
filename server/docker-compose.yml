@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  chart-server:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: ppchart-server:latest
+    restart: always
+    ports:
+      - "7777:7777"

@@ -9,6 +9,8 @@ npm install
 npm run dev
 ```
 
+后端服务代码在 [`server/`](./server)，启动方式见 [`server/README.md`](./server/README.md)。
+
 ## 构建
 
 ```bash

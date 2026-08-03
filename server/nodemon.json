@@ -1,0 +1,13 @@
+{
+  "verbose": true,
+  "ignore": [
+  ],
+  "events": {
+    "restart": ""
+  },
+  "watch": [
+    "source/*",
+    "server.js"
+  ],
+  "delay": 2000
+}
