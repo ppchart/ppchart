@@ -33,11 +33,20 @@ app.use(
         "https://www.ppchart.com",
         "https://ppchart.com",
       ]; //可跨域白名单
-      let url = isString(ctx.header.referer)
-        ? ctx.header.referer.substr(0, ctx.header.referer.length - 1)
-        : null;
-      if (whiteList.includes(url)) {
-        return url; // 注意，这里域名末尾不能带/，否则不成功，所以在之前我把/通过substr干掉了
+      const requestOrigin = ctx.get("Origin");
+      if (whiteList.includes(requestOrigin)) {
+        return requestOrigin;
+      }
+
+      if (isString(ctx.header.referer)) {
+        try {
+          const refererOrigin = new URL(ctx.header.referer).origin;
+          if (whiteList.includes(refererOrigin)) {
+            return refererOrigin;
+          }
+        } catch (error) {
+          // Ignore malformed Referer and use the local fallback below.
+        }
       }
       return "http://local.ppchart.com:3000"; // 默认允许本地请求可跨域
     },
