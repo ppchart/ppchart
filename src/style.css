@@ -161,6 +161,7 @@ main {
 }
 
 .header-links a,
+.header-links button,
 .theme-switch button {
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -170,6 +171,33 @@ main {
   font-weight: 700;
   padding: 8px 12px;
   text-transform: uppercase;
+}
+
+.header-links button {
+  cursor: pointer;
+}
+
+.header-user {
+  display: inline-flex;
+  max-width: 150px;
+  gap: 7px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.header-user img {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.header-user span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .traffic {
@@ -376,12 +404,16 @@ h1 {
 }
 
 .user-panel {
-  margin-top: 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--paper) 86%, transparent);
   box-shadow: var(--soft-glow);
-  padding: 18px;
+  padding: 28px;
+}
+
+.workspace-page {
+  width: min(1120px, calc(100% - 40px));
+  padding-top: 124px;
 }
 
 .user-panel-header {
@@ -391,9 +423,27 @@ h1 {
   justify-content: space-between;
 }
 
-.user-panel h2,
+.user-panel h1,
 .user-panel h3 {
   margin: 0;
+}
+
+.user-panel h1 {
+  font-size: clamp(28px, 4vw, 48px);
+  letter-spacing: -0.05em;
+}
+
+.user-panel-header p:not(.eyebrow) {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.back-to-gallery {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .user-panel-tip,
@@ -433,6 +483,26 @@ h1 {
   border-color: transparent;
   background: var(--accent);
   color: var(--accent-ink);
+}
+
+.workspace-login {
+  display: grid;
+  max-width: 560px;
+  gap: 12px;
+  margin-top: 36px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--field);
+  padding: 24px;
+}
+
+.workspace-login strong {
+  font-size: 20px;
+}
+
+.workspace-login p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .user-profile img {
@@ -856,6 +926,16 @@ dd {
     border-radius: 999px;
   }
 
+  .header-links {
+    justify-content: flex-end;
+  }
+
+  .header-links > a:first-child,
+  .header-user,
+  .theme-switch {
+    display: none;
+  }
+
   .traffic {
     display: none;
   }
@@ -884,6 +964,31 @@ dd {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
+  }
+
+  .workspace-page {
+    width: min(100% - 24px, 1120px);
+  }
+
+  .user-panel {
+    padding: 20px;
+  }
+
+  .user-panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-chart-form {
+    grid-template-columns: 1fr;
+  }
+
+  .user-chart-form .span-2 {
+    grid-column: auto;
+  }
+
+  .my-chart-list article {
+    grid-template-columns: 1fr auto;
   }
 
   .chart-grid {

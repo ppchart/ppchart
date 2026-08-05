@@ -67,6 +67,10 @@ export function parseTypeFromPath(pathname = window.location.pathname) {
   return slugTypeMap[decodeURIComponent(match[1])] || '';
 }
 
+export function isUserWorkspacePath(pathname = window.location.pathname) {
+  return pathname === '/my-charts.html';
+}
+
 export function getTypeLabel(type: string) {
   return chartTypes.find(item => item.value === type)?.label || '全部';
 }

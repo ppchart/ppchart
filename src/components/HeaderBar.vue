@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import type { VisitStats } from '@/types/chart';
+import type { CurrentUser, VisitStats } from '@/types/chart';
 import { formatCount } from '@/utils/format';
 
 defineProps<{
   stats: VisitStats | null;
   themeMode: 'light' | 'dark' | 'system';
+  user: CurrentUser | null;
 }>();
 
 defineEmits<{
   'update:themeMode': [value: 'light' | 'dark' | 'system'];
+  login: [provider: 'github' | 'google'];
+  logout: [];
 }>();
 </script>
 
@@ -24,6 +27,18 @@ defineEmits<{
 
     <nav class="header-links" aria-label="站点导航">
       <a href="https://github.com/ppchart/ppchart" target="_blank" rel="noreferrer">GitHub</a>
+      <template v-if="user">
+        <a href="/my-charts.html">我的图表</a>
+        <span class="header-user">
+          <img v-if="user.avatar" :src="user.avatar" alt="" />
+          <span>{{ user.name || user.email || '已登录' }}</span>
+        </span>
+        <button type="button" @click="$emit('logout')">退出</button>
+      </template>
+      <template v-else>
+        <button type="button" @click="$emit('login', 'github')">GitHub 登录</button>
+        <button type="button" @click="$emit('login', 'google')">Google 登录</button>
+      </template>
     </nav>
 
     <div class="theme-switch" aria-label="主题模式">

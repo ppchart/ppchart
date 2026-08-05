@@ -18,7 +18,6 @@ defineProps<{
 
 const emit = defineEmits<{
   login: [provider: 'github' | 'google'];
-  logout: [];
   save: [];
   edit: [chart: UserChart];
   remove: [chart: UserChart];
@@ -56,21 +55,21 @@ function updateField(
   <section class="user-panel" aria-labelledby="user-panel-title">
     <div class="user-panel-header">
       <div>
-        <p class="eyebrow">USER CHARTS</p>
-        <h2 id="user-panel-title">上传和管理我的图表</h2>
+        <p class="eyebrow">MY WORKSPACE</p>
+        <h1 id="user-panel-title">我的图表</h1>
+        <p>保存 ECharts 草稿，完成后提交到公开图库。</p>
       </div>
-      <div v-if="user" class="user-profile">
-        <img v-if="user.avatar" :src="user.avatar" alt="" />
-        <span>{{ user.name || user.email || '已登录用户' }}</span>
-        <button type="button" @click="emit('logout')">退出</button>
-      </div>
-      <div v-else class="oauth-actions">
+      <a class="back-to-gallery" href="/">返回图表库</a>
+    </div>
+
+    <div v-if="!user" class="workspace-login">
+      <strong>登录后开始创建</strong>
+      <p>使用 GitHub 或 Google 账号登录，保存自己的 ECharts 草稿。</p>
+      <div class="oauth-actions">
         <button type="button" @click="emit('login', 'github')">使用 GitHub 登录</button>
         <button type="button" @click="emit('login', 'google')">使用 Google 登录</button>
       </div>
     </div>
-
-    <p v-if="!user" class="user-panel-tip">登录后可以保存自己的 ECharts 草稿，提交审核后进入公开库。</p>
 
     <template v-else>
       <div v-if="error" class="user-panel-error">{{ error }}</div>
