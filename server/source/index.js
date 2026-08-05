@@ -58,8 +58,26 @@ class Black extends Base {
     }
 }
 
+class OAuthUser extends Base {
+    constructor(props) {
+        super(props)
+    }
+
+    findByProviderUser(provider, providerUserId) {
+        return this.findFirst({ where: { provider, providerUserId } })
+    }
+}
+
+class UserChart extends Base {
+    constructor(props) {
+        super(props)
+    }
+}
+
 module.exports = {
     chart: new Chart({ name: 'chart' }),
     mac: new Mac({ name: 'mac' }),
-    blackModel: new Black({ name: 'black' })
+    blackModel: new Black({ name: 'black' }),
+    oauthUser: new OAuthUser({ name: 'oauth_user' }),
+    userChart: new UserChart({ name: 'user_chart' })
 }

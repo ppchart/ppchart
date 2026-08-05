@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@prisma/client": "^3.8.1",
-    "ciam-node-sdk": "^1.1.1",
     "dotenv": "^16.0.0",
     "getmac": "^5.20.0",
     "ioredis": "^4.28.3",

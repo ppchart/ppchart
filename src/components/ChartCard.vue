@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ChartSummary } from '@/types/chart';
 import { formatCount, formatDate } from '@/utils/format';
+import { makeChartPath } from '@/utils/routes';
 
 defineProps<{
   chart: ChartSummary;
@@ -13,14 +14,14 @@ defineEmits<{
 
 <template>
   <article class="chart-card">
-    <button class="thumbnail-button" type="button" @click="$emit('open', chart.cid)">
+    <a class="thumbnail-button" :href="makeChartPath(chart)" @click.prevent="$emit('open', chart.cid)">
       <img :src="chart.thumbnailURL" :alt="chart.title" loading="lazy" />
-    </button>
+    </a>
 
     <div class="chart-card-body">
-      <button class="chart-title" type="button" @click="$emit('open', chart.cid)">
+      <a class="chart-title" :href="makeChartPath(chart)" @click.prevent="$emit('open', chart.cid)">
         {{ chart.title || '未命名图表' }}
-      </button>
+      </a>
 
       <dl class="chart-meta">
         <div>

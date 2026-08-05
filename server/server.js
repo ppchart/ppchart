@@ -3,28 +3,23 @@ const _ = require("lodash");
 var cors = require("koa2-cors");
 const Redis = require("ioredis");
 const Router = require("koa-router");
-const jwtDecode = require("jwt-decode");
 const envConfig = require("./env.config");
+const {
+  buildAuthorizeUrl,
+  createSessionToken,
+  createState,
+  exchangeCode,
+  fetchOAuthProfile,
+  providerConfigs,
+} = require("./oauth");
 
 const getmac = require("getmac").default;
 
-const { chart, mac: macModel, blackModel } = require("./source");
+const { chart, mac: macModel, blackModel, oauthUser, userChart } = require("./source");
 const { isString, isNumber } = require("lodash");
-const { NodeClient } = require("ciam-node-sdk");
-
-const ciam = new NodeClient({
-  clientId: process.env.CIAM_ID,
-  clientSecret: process.env.CIAM_SECRET,
-  userDomain: "https://ppchart.portal.tencentciam.com",
-  redirectUri: process.env.CIAM_REDIRECT,
-  logoutRedirectUrl: process.env.CIAM_LOGOUT_REDIRECT,
-  scopes: ["openid"],
-  protocol: "OIDC_PKCE",
-});
 const clientPath = process.env.CLIENT_PATH;
 const app = new Koa();
 const router = new Router();
-const pathRouter = new Router();
 
 app.use(
   cors({
@@ -60,6 +55,87 @@ const limitNumberShort = 50;
 const limitNumberLong = 666;
 
 app.proxy = true;
+
+async function parseJsonBody(ctx, next) {
+  const method = ctx.method.toUpperCase();
+  const contentType = ctx.get("content-type") || "";
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(method) || !contentType.includes("application/json")) {
+    return next();
+  }
+
+  const chunks = [];
+  for await (const chunk of ctx.req) {
+    chunks.push(chunk);
+  }
+
+  const rawBody = Buffer.concat(chunks).toString("utf8");
+  ctx.request.body = rawBody ? JSON.parse(rawBody) : {};
+  return next();
+}
+
+function publicUser(user) {
+  if (!user) return null;
+  return {
+    id: user.id,
+    provider: user.provider,
+    email: user.email,
+    name: user.name,
+    avatar: user.avatar,
+    role: user.role,
+  };
+}
+
+function getAuthToken(ctx) {
+  const auth = ctx.get("authorization");
+  if (auth.startsWith("Bearer ")) {
+    return auth.slice("Bearer ".length);
+  }
+  return ctx.get("x-auth-token") || "";
+}
+
+async function getSessionUser(ctx) {
+  const token = getAuthToken(ctx);
+  if (!token) {
+    return null;
+  }
+  const userId = await redis.get(`session::${token}`);
+  if (!userId) {
+    return null;
+  }
+  return oauthUser.findFirst({ where: { id: Number(userId) } });
+}
+
+async function requireUser(ctx) {
+  const user = await getSessionUser(ctx);
+  if (!user) {
+    ctx.status = 401;
+    ctx.body = { code: 401, message: "请先登录" };
+    return null;
+  }
+  return user;
+}
+
+function redirectWithToken(redirect, token) {
+  const target = redirect || clientPath || "https://www.ppchart.com";
+  const separator = target.includes("#") ? "&" : "#";
+  return `${target}${separator}auth_token=${encodeURIComponent(token)}`;
+}
+
+function createUserChartCid(userId) {
+  return `user-${userId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeChartPayload(body = {}) {
+  return {
+    title: isString(body.title) && body.title.trim() ? body.title.trim().slice(0, 255) : "未命名图表",
+    description: isString(body.description) ? body.description.trim() : "",
+    code: isString(body.code) ? body.code : "",
+    echartsVersion: isString(body.echartsVersion) && body.echartsVersion.trim() ? body.echartsVersion.trim() : null,
+    status: body.status === "pending" ? "pending" : "draft",
+  };
+}
+
+app.use(parseJsonBody);
 
 app.use(async (ctx, next) => {
   ctx.body = { code: 10086, message: "大兄弟，咱慢点访问" };
@@ -347,27 +423,79 @@ router.get("/visit", async (ctx) => {
   ctx.body = { code: 0, ...visitNumber };
 });
 
-pathRouter.get("/login", async (ctx) => {
-  const url = await ciam.generateAuthUrl();
-  ctx.redirect(url);
+router.get("/oauth/:provider/login", async (ctx) => {
+  const { provider } = ctx.params;
+  if (!providerConfigs[provider]) {
+    ctx.status = 404;
+    ctx.body = { code: 404, message: "登录方式不存在" };
+    return;
+  }
+
+  const state = createState();
+  const redirect = isString(ctx.query.redirect) ? ctx.query.redirect : clientPath;
+  await redis.set(`oauth_state::${state}`, JSON.stringify({ provider, redirect }), "EX", 600);
+  ctx.redirect(buildAuthorizeUrl(provider, state));
 });
 
-pathRouter.get("/callback", async (ctx) => {
-  const { code } = ctx.query;
-  const result = await ciam.fetchToken(code);
-  const { access_token, id_token } = result;
+router.get("/oauth/:provider/callback", async (ctx) => {
+  const { provider } = ctx.params;
+  const { code, state } = ctx.query;
 
-  await redis.set(`token::${access_token}`, id_token, "EX", 7200);
-  ctx.redirect(`${clientPath}/#/callback?ticket=${access_token}`);
+  if (!providerConfigs[provider] || !isString(code) || !isString(state)) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: "OAuth 回调参数错误" };
+    return;
+  }
+
+  const stateKey = `oauth_state::${state}`;
+  const stateValue = await redis.get(stateKey);
+  await redis.del(stateKey);
+  if (!stateValue) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: "OAuth state 已过期" };
+    return;
+  }
+
+  const statePayload = JSON.parse(stateValue);
+  if (statePayload.provider !== provider) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: "OAuth provider 不匹配" };
+    return;
+  }
+
+  const accessToken = await exchangeCode(provider, code);
+  const profile = await fetchOAuthProfile(provider, accessToken);
+  const existingUser = await oauthUser.findByProviderUser(profile.provider, profile.providerUserId);
+  const user = existingUser
+    ? await oauthUser.update({
+        where: { id: existingUser.id },
+        data: {
+          email: profile.email,
+          name: profile.name,
+          avatar: profile.avatar,
+        },
+      })
+    : await oauthUser.add({
+        data: {
+          provider: profile.provider,
+          providerUserId: profile.providerUserId,
+          email: profile.email,
+          name: profile.name,
+          avatar: profile.avatar,
+        },
+      });
+
+  const sessionToken = createSessionToken();
+  await redis.set(`session::${sessionToken}`, String(user.id), "EX", 60 * 60 * 24 * 7);
+  ctx.redirect(redirectWithToken(statePayload.redirect, sessionToken));
 });
 
 router.get("/logout", async (ctx) => {
-  const access_token = ctx.headers["x-auth-token"];
+  const access_token = getAuthToken(ctx);
   await redis
-    .del(`token::${access_token}`)
+    .del(`session::${access_token}`)
     .then(async () => {
-      const url = await ciam.logout();
-      ctx.body = { code: 0, data: url };
+      ctx.body = { code: 0, data: null };
     })
     .catch(() => {
       ctx.body = { code: 1, data: null };
@@ -375,26 +503,97 @@ router.get("/logout", async (ctx) => {
 });
 
 router.get("/userinfo", async (ctx) => {
-  const access_token = ctx.headers["x-auth-token"];
-  let data = {};
-  await redis
-    .get(`token::${access_token}`)
-    .then(async (id_token) => {
-      if (id_token) {
-        const userInfo = jwtDecode(id_token);
-        data.userName = userInfo.userName;
-      } else {
-        data = null;
-      }
-    })
-    .catch(() => {
-      data = null;
-    });
-  ctx.body = { code: 0, data };
+  const user = await getSessionUser(ctx);
+  ctx.body = { code: 0, data: publicUser(user) };
+});
+
+router.get("/my/charts", async (ctx) => {
+  const user = await requireUser(ctx);
+  if (!user) return;
+
+  const charts = await userChart.model.findMany({
+    where: { userId: user.id },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      cid: true,
+      title: true,
+      description: true,
+      code: true,
+      echartsVersion: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      publishedAt: true,
+    },
+  });
+  ctx.body = { code: 0, data: charts };
+});
+
+router.post("/my/charts", async (ctx) => {
+  const user = await requireUser(ctx);
+  if (!user) return;
+
+  const payload = normalizeChartPayload(ctx.request.body);
+  if (!payload.code.trim()) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: "图表代码不能为空" };
+    return;
+  }
+
+  const created = await userChart.add({
+    data: {
+      ...payload,
+      userId: user.id,
+      cid: createUserChartCid(user.id),
+    },
+  });
+  ctx.body = { code: 0, data: created };
+});
+
+router.put("/my/charts/:id", async (ctx) => {
+  const user = await requireUser(ctx);
+  if (!user) return;
+
+  const id = Number(ctx.params.id);
+  const existing = await userChart.findFirst({ where: { id, userId: user.id } });
+  if (!existing) {
+    ctx.status = 404;
+    ctx.body = { code: 404, message: "图表不存在" };
+    return;
+  }
+
+  const payload = normalizeChartPayload(ctx.request.body);
+  if (!payload.code.trim()) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: "图表代码不能为空" };
+    return;
+  }
+
+  const updated = await userChart.update({
+    where: { id },
+    data: payload,
+  });
+  ctx.body = { code: 0, data: updated };
+});
+
+router.delete("/my/charts/:id", async (ctx) => {
+  const user = await requireUser(ctx);
+  if (!user) return;
+
+  const id = Number(ctx.params.id);
+  const existing = await userChart.findFirst({ where: { id, userId: user.id } });
+  if (!existing) {
+    ctx.status = 404;
+    ctx.body = { code: 404, message: "图表不存在" };
+    return;
+  }
+
+  await userChart.model.delete({ where: { id } });
+  ctx.body = { code: 0, data: null };
 });
 
 app.use(router.routes()).use(router.allowedMethods());
-app.use(pathRouter.routes()).use(pathRouter.allowedMethods());
 
 app.listen(7777, "0.0.0.0", () => {
   console.log("http://localhost:7777");

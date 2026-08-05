@@ -346,7 +346,8 @@ h1 {
   text-transform: uppercase;
 }
 
-.filter-group button {
+.filter-group button,
+.filter-group a {
   border: 1px solid var(--line);
   border-radius: 999px;
   background: color-mix(in srgb, var(--panel) 56%, transparent);
@@ -356,7 +357,8 @@ h1 {
   padding: 9px 12px;
 }
 
-.filter-group button.active {
+.filter-group button.active,
+.filter-group a.active {
   border-color: transparent;
   background: var(--accent);
   color: var(--accent-ink);
@@ -371,6 +373,145 @@ h1 {
   min-width: 104px;
   border-radius: var(--radius-sm);
   padding: 10px 14px;
+}
+
+.user-panel {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  box-shadow: var(--soft-glow);
+  padding: 18px;
+}
+
+.user-panel-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user-panel h2,
+.user-panel h3 {
+  margin: 0;
+}
+
+.user-panel-tip,
+.user-panel-error {
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+
+.user-panel-error {
+  color: var(--danger);
+}
+
+.oauth-actions,
+.user-profile,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.oauth-actions button,
+.user-profile button,
+.form-actions button,
+.my-chart-list button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--field);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 12px;
+}
+
+.oauth-actions button:first-child,
+.form-actions button:first-child {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.user-profile img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.user-chart-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.user-chart-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.user-chart-form .span-2 {
+  grid-column: 1 / -1;
+}
+
+.user-chart-form input,
+.user-chart-form textarea,
+.user-chart-form select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--field);
+  color: var(--ink);
+  padding: 10px 12px;
+}
+
+.user-chart-form textarea {
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height: 1.55;
+}
+
+.my-chart-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.my-chart-list article {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.my-chart-list article div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.my-chart-list article span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
+.my-chart-list article p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .result-bar {

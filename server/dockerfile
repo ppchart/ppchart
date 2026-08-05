@@ -8,7 +8,7 @@ USER root
 
 COPY . .
 
-RUN yarn
+RUN npm install
 
 RUN npx prisma generate
 

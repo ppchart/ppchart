@@ -40,3 +40,25 @@ export interface VisitResponse {
   threeUV?: number;
   UV?: number;
 }
+
+export interface CurrentUser {
+  id: number;
+  provider: 'github' | 'google';
+  email: string | null;
+  name: string | null;
+  avatar: string | null;
+  role: 'user' | 'admin';
+}
+
+export interface UserChart {
+  id: number;
+  cid: string;
+  title: string;
+  description: string | null;
+  code: string;
+  echartsVersion: string | null;
+  status: 'draft' | 'pending' | 'published';
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+}

@@ -1,13 +1,26 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { fetchChartDetail, fetchChartList, fetchVisitStats } from '@/api/ppchart';
+import {
+  createMyChart,
+  deleteMyChart,
+  fetchChartDetail,
+  fetchChartList,
+  fetchCurrentUser,
+  fetchMyCharts,
+  fetchVisitStats,
+  getOAuthLoginUrl,
+  logout,
+  updateMyChart
+} from '@/api/ppchart';
 import ChartGrid from '@/components/ChartGrid.vue';
 import HeaderBar from '@/components/HeaderBar.vue';
 import SearchPanel from '@/components/SearchPanel.vue';
+import UserChartPanel from '@/components/UserChartPanel.vue';
 import { chartTypes, runtimeFilters, type RuntimeFilter } from '@/data/chartTypes';
-import type { ChartDetail, ChartSummary, VisitStats } from '@/types/chart';
+import type { ChartDetail, ChartSummary, CurrentUser, UserChart, VisitStats } from '@/types/chart';
 import { normalizeCode } from '@/utils/format';
+import { makeTypePath, parseChartCid, parseTypeFromPath } from '@/utils/routes';
 
 const ChartDetailDrawer = defineAsyncComponent(() => import('@/components/ChartDetailDrawer.vue'));
 type ThemeMode = 'light' | 'dark' | 'system';
@@ -16,7 +29,7 @@ const charts = ref<ChartSummary[]>([]);
 const total = ref(0);
 const page = ref(1);
 const search = ref('');
-const activeType = ref('');
+const activeType = ref(parseTypeFromPath());
 const runtimeFilter = ref<RuntimeFilter>('runnable');
 const listLoading = ref(false);
 const listError = ref('');
@@ -26,6 +39,19 @@ const detailError = ref('');
 const selectedDetail = ref<ChartDetail | null>(null);
 const editableCode = ref('');
 const stats = ref<VisitStats | null>(null);
+const authToken = ref(window.localStorage.getItem('ppchart-auth-token') || '');
+const currentUser = ref<CurrentUser | null>(null);
+const myCharts = ref<UserChart[]>([]);
+const userPanelLoading = ref(false);
+const userPanelError = ref('');
+const userChartForm = ref({
+  id: null as number | null,
+  title: '',
+  description: '',
+  echartsVersion: '5.6.0',
+  code: '',
+  status: 'draft' as 'draft' | 'pending'
+});
 const themeMode = ref<ThemeMode>('dark');
 const systemDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 const initialListLoading = computed(() => listLoading.value && charts.value.length === 0);
@@ -101,7 +127,7 @@ async function openDetail(cid: string) {
   editableCode.value = '';
   detailLoading.value = true;
   detailError.value = '';
-  window.history.replaceState(null, '', `#chart=${encodeURIComponent(cid)}`);
+  window.history.replaceState(null, '', `/chart/${encodeURIComponent(cid)}`);
 
   try {
     const detail = await fetchChartDetail(cid);
@@ -118,14 +144,111 @@ function closeDetail() {
   selectedDetail.value = null;
   editableCode.value = '';
   detailError.value = '';
-  window.history.replaceState(null, '', window.location.pathname);
+  window.history.replaceState(null, '', activeType.value ? makeTypePath(activeType.value) : '/');
 }
 
 function submitSearch() {
   resetCharts();
 }
 
+function resetUserChartForm() {
+  userChartForm.value = {
+    id: null,
+    title: '',
+    description: '',
+    echartsVersion: '5.6.0',
+    code: '',
+    status: 'draft'
+  };
+}
+
+function loginWithProvider(provider: 'github' | 'google') {
+  window.location.href = getOAuthLoginUrl(provider);
+}
+
+async function loadCurrentUser() {
+  if (!authToken.value) {
+    currentUser.value = null;
+    myCharts.value = [];
+    return;
+  }
+
+  try {
+    currentUser.value = await fetchCurrentUser(authToken.value);
+    if (!currentUser.value) {
+      authToken.value = '';
+      window.localStorage.removeItem('ppchart-auth-token');
+      return;
+    }
+    myCharts.value = await fetchMyCharts(authToken.value);
+  } catch (error) {
+    userPanelError.value = error instanceof Error ? error.message : '用户信息读取失败';
+  }
+}
+
+async function logoutCurrentUser() {
+  if (authToken.value) {
+    await logout(authToken.value).catch(() => undefined);
+  }
+  authToken.value = '';
+  currentUser.value = null;
+  myCharts.value = [];
+  window.localStorage.removeItem('ppchart-auth-token');
+  resetUserChartForm();
+}
+
+async function saveUserChart() {
+  if (!authToken.value) {
+    return;
+  }
+  userPanelLoading.value = true;
+  userPanelError.value = '';
+  try {
+    const payload = {
+      title: userChartForm.value.title,
+      description: userChartForm.value.description,
+      echartsVersion: userChartForm.value.echartsVersion,
+      code: userChartForm.value.code,
+      status: userChartForm.value.status
+    };
+    if (userChartForm.value.id) {
+      await updateMyChart(authToken.value, userChartForm.value.id, payload);
+    } else {
+      await createMyChart(authToken.value, payload);
+    }
+    myCharts.value = await fetchMyCharts(authToken.value);
+    resetUserChartForm();
+  } catch (error) {
+    userPanelError.value = error instanceof Error ? error.message : '图表保存失败';
+  } finally {
+    userPanelLoading.value = false;
+  }
+}
+
+function editUserChart(chart: UserChart) {
+  userChartForm.value = {
+    id: chart.id,
+    title: chart.title,
+    description: chart.description || '',
+    echartsVersion: chart.echartsVersion || '5.6.0',
+    code: chart.code,
+    status: chart.status === 'pending' ? 'pending' : 'draft'
+  };
+}
+
+async function removeUserChart(chart: UserChart) {
+  if (!authToken.value || !window.confirm(`确认删除「${chart.title}」吗？`)) {
+    return;
+  }
+  await deleteMyChart(authToken.value, chart.id);
+  myCharts.value = await fetchMyCharts(authToken.value);
+  if (userChartForm.value.id === chart.id) {
+    resetUserChartForm();
+  }
+}
+
 watch(activeType, () => {
+  window.history.replaceState(null, '', activeType.value ? makeTypePath(activeType.value) : '/');
   resetCharts();
 });
 
@@ -134,6 +257,13 @@ watch(runtimeFilter, () => {
 });
 
 onMounted(async () => {
+  const authFromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('auth_token');
+  if (authFromHash) {
+    authToken.value = authFromHash;
+    window.localStorage.setItem('ppchart-auth-token', authFromHash);
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
   const storedThemeMode = window.localStorage.getItem('ppchart-theme-mode') as ThemeMode | null;
   if (storedThemeMode === 'light' || storedThemeMode === 'dark' || storedThemeMode === 'system') {
     themeMode.value = storedThemeMode;
@@ -149,10 +279,12 @@ onMounted(async () => {
     .catch(() => {
       stats.value = null;
     });
+  loadCurrentUser();
 
+  const routeCid = parseChartCid();
   const hashCid = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('chart');
-  if (hashCid) {
-    openDetail(hashCid);
+  if (routeCid || hashCid) {
+    openDetail(routeCid || hashCid || '');
   }
 
   await nextTick();
@@ -187,6 +319,20 @@ onBeforeUnmount(() => {
       :runtime-filters="runtimeFilters"
       :loading="listLoading"
       @submit="submitSearch"
+    />
+
+    <UserChartPanel
+      v-model:form="userChartForm"
+      :user="currentUser"
+      :charts="myCharts"
+      :loading="userPanelLoading"
+      :error="userPanelError"
+      @login="loginWithProvider"
+      @logout="logoutCurrentUser"
+      @save="saveUserChart"
+      @edit="editUserChart"
+      @remove="removeUserChart"
+      @reset="resetUserChartForm"
     />
 
     <div class="result-bar">

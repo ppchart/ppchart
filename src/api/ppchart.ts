@@ -3,6 +3,8 @@ import type {
   ChartDetailResponse,
   ChartListResponse,
   ChartSummary,
+  CurrentUser,
+  UserChart,
   VisitResponse,
   VisitStats
 } from '@/types/chart';
@@ -30,6 +32,72 @@ async function requestJson<T>(path: string, params?: Record<string, string | num
   }
 
   return response.json() as Promise<T>;
+}
+
+async function requestApi<T>(
+  path: string,
+  options: { method?: string; body?: unknown; token?: string } = {}
+): Promise<T> {
+  const response = await fetch(new URL(`${API_BASE}${path}`, window.location.origin), {
+    method: options.method || 'GET',
+    headers: {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {})
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+
+  const payload = (await response.json()) as T & { code?: number; message?: string };
+  if (!response.ok || (typeof payload.code === 'number' && payload.code !== 0)) {
+    throw new Error(payload.message || `请求失败：${response.status}`);
+  }
+  return payload;
+}
+
+export function getOAuthLoginUrl(provider: 'github' | 'google') {
+  const url = new URL(`${API_BASE}/oauth/${provider}/login`, window.location.origin);
+  url.searchParams.set('redirect', window.location.origin + window.location.pathname);
+  return url.toString();
+}
+
+export async function fetchCurrentUser(token: string): Promise<CurrentUser | null> {
+  const payload = await requestApi<{ code: number; data: CurrentUser | null }>('/userinfo', { token });
+  return payload.data;
+}
+
+export async function logout(token: string) {
+  await requestApi('/logout', { token });
+}
+
+export async function fetchMyCharts(token: string): Promise<UserChart[]> {
+  const payload = await requestApi<{ code: number; data: UserChart[] }>('/my/charts', { token });
+  return payload.data || [];
+}
+
+export async function createMyChart(token: string, input: Pick<UserChart, 'title' | 'description' | 'code' | 'echartsVersion'> & { status?: string }) {
+  const payload = await requestApi<{ code: number; data: UserChart }>('/my/charts', {
+    method: 'POST',
+    token,
+    body: input
+  });
+  return payload.data;
+}
+
+export async function updateMyChart(
+  token: string,
+  id: number,
+  input: Pick<UserChart, 'title' | 'description' | 'code' | 'echartsVersion'> & { status?: string }
+) {
+  const payload = await requestApi<{ code: number; data: UserChart }>(`/my/charts/${id}`, {
+    method: 'PUT',
+    token,
+    body: input
+  });
+  return payload.data;
+}
+
+export async function deleteMyChart(token: string, id: number) {
+  await requestApi(`/my/charts/${id}`, { method: 'DELETE', token });
 }
 
 export async function fetchChartList(input: {

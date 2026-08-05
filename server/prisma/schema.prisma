@@ -66,14 +66,48 @@ model tag {
 }
 
 model mac {
-  count Int    @default(0)
-  id    Int    @id @default(autoincrement())
-  mac   String @unique(map: "mac_index") @db.VarChar(30)
-  black Int    @default(0)
+  count       Int       @default(0)
+  id          Int       @id @default(autoincrement())
+  mac         String    @unique(map: "mac_index") @db.VarChar(30)
+  black       Int       @default(0)
+  update_time DateTime @default(now()) @db.DateTime(0)
 }
 
 model black {
   id          Int      @id @default(autoincrement())
   mac         String   @db.VarChar(20)
   update_time DateTime @default(now()) @db.DateTime(0)
+}
+
+model oauth_user {
+  id             Int          @id @default(autoincrement())
+  provider       String       @db.VarChar(32)
+  providerUserId String       @db.VarChar(128)
+  email          String?      @db.VarChar(255)
+  name           String?      @db.VarChar(255)
+  avatar         String?      @db.VarChar(512)
+  role           String       @default("user") @db.VarChar(32)
+  createdAt      DateTime     @default(now()) @db.DateTime(0)
+  updatedAt      DateTime     @updatedAt @db.DateTime(0)
+  charts         user_chart[]
+
+  @@unique([provider, providerUserId], map: "oauth_provider_user_unique")
+  @@index([email], map: "oauth_email_index")
+}
+
+model user_chart {
+  id             Int        @id @default(autoincrement())
+  userId         Int
+  cid            String     @unique(map: "user_chart_cid_index") @db.VarChar(100)
+  title          String     @db.VarChar(255)
+  description    String?    @db.Text
+  code           String     @db.LongText
+  echartsVersion String?    @db.VarChar(255)
+  status         String     @default("draft") @db.VarChar(32)
+  createdAt      DateTime   @default(now()) @db.DateTime(0)
+  updatedAt      DateTime   @updatedAt @db.DateTime(0)
+  publishedAt    DateTime?  @db.DateTime(0)
+  user           oauth_user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status], map: "user_chart_owner_status_index")
 }

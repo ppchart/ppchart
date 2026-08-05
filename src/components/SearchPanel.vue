@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ChartTypeOption, RuntimeFilter } from '@/data/chartTypes';
+import { makeTypePath } from '@/utils/routes';
 
 defineProps<{
   search: string;
@@ -57,15 +58,15 @@ const emit = defineEmits<{
 
       <div class="filter-group type-list" aria-label="图表分类">
         <span>图表类型</span>
-        <button
+        <a
           v-for="item in types"
           :key="item.value || 'all'"
-          type="button"
+          :href="makeTypePath(item.value)"
           :class="{ active: item.value === activeType }"
-          @click="emit('update:activeType', item.value)"
+          @click.prevent="emit('update:activeType', item.value)"
         >
           {{ item.label }}
-        </button>
+        </a>
       </div>
     </div>
   </section>

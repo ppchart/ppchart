@@ -16,13 +16,11 @@ class Env {
   }
 
   init() {
-    if (!fs.existsSync(this.dotEnvDefault)) {
-      throw new Error("Please add a ,env file to the root directory");
+    if (fs.existsSync(this.dotEnvDefault)) {
+      dotenv.config({
+        path: path.resolve(process.cwd(), this.dotEnvDefault),
+      });
     }
-
-    dotenv.config({
-      path: path.resolve(process.cwd(), this.dotEnvDefault),
-    });
 
     const environment = this.getEnvironment();
 
@@ -52,9 +50,11 @@ class Env {
     }
 
     // re-configure dotenv with the new file
-    dotenv.config({
-      path: path.resolve(process.cwd(), envFile),
-    });
+    if (fs.existsSync(envFile)) {
+      dotenv.config({
+        path: path.resolve(process.cwd(), envFile),
+      });
+    }
   }
 
   getEnvFile(environment) {

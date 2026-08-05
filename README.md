@@ -17,6 +17,18 @@ npm run dev
 npm run build
 ```
 
+生成可被搜索引擎索引的静态详情页、分类页和 `sitemap.xml`：
+
+```bash
+npm run build:seo
+```
+
+默认会为浏览量靠前的 5000 个可运行图表生成静态页。如需生成更多页面：
+
+```bash
+SEO_MAX_CHARTS=20000 SITE_URL=https://www.ppchart.com npm run build:seo
+```
+
 ## 环境变量
 
 默认 API 地址已经指向线上 chart server。如需切换：

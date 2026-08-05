@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vue-tsc --noEmit && vite build",
+    "build:seo": "npm run build && node scripts/generate-seo-pages.mjs",
     "test:e2e": "playwright test",
     "preview": "vite preview --host 0.0.0.0"
   },
