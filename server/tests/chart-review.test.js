@@ -2,7 +2,9 @@ const assert = require("assert");
 const {
   buildPublicChartData,
   buildReviewUpdate,
+  buildUnpublishUpdate,
   parseReviewInput,
+  parseUnpublishInput,
 } = require("../chart-review");
 
 assert.deepStrictEqual(parseReviewInput({ action: "approve" }), {
@@ -51,5 +53,19 @@ const rejected = buildReviewUpdate("reject", "代码无法运行", 7);
 assert.strictEqual(rejected.status, "rejected");
 assert.strictEqual(rejected.reviewNote, "代码无法运行");
 assert.strictEqual(rejected.publishedAt, undefined);
+
+assert.deepStrictEqual(parseUnpublishInput({ note: "  内容违规  " }), {
+  note: "内容违规",
+});
+assert.throws(
+  () => parseUnpublishInput({ note: " " }),
+  /下架原因不能为空/
+);
+
+const unpublished = buildUnpublishUpdate("内容违规", 7);
+assert.strictEqual(unpublished.status, "unpublished");
+assert.strictEqual(unpublished.reviewNote, "内容违规");
+assert.strictEqual(unpublished.reviewerUserId, 7);
+assert.ok(unpublished.reviewedAt instanceof Date);
 
 console.log("chart-review tests passed");

@@ -9,6 +9,7 @@ const props = defineProps<{
   user: CurrentUser | null;
   charts: AdminChart[];
   selected: AdminChart | null;
+  status: 'pending' | 'published';
   loading: boolean;
   error: string;
 }>();
@@ -16,32 +17,38 @@ const props = defineProps<{
 const emit = defineEmits<{
   login: [provider: 'github' | 'google'];
   select: [chart: AdminChart];
+  'update:status': [value: 'pending' | 'published'];
   approve: [chart: AdminChart];
   reject: [chart: AdminChart, note: string];
+  unpublish: [chart: AdminChart, note: string];
 }>();
 
-const rejectNote = ref('');
+const actionNote = ref('');
 const localError = ref('');
 
 watch(
-  () => props.selected?.id,
+  () => [props.selected?.id, props.status],
   () => {
-    rejectNote.value = '';
+    actionNote.value = '';
     localError.value = '';
   }
 );
 
-function rejectSelected() {
+function submitSecondaryAction() {
   if (!props.selected) {
     return;
   }
-  const note = rejectNote.value.trim();
+  const note = actionNote.value.trim();
   if (!note) {
-    localError.value = '请填写拒绝原因';
+    localError.value = props.status === 'pending' ? '请填写拒绝原因' : '请填写下架原因';
     return;
   }
   localError.value = '';
-  emit('reject', props.selected, note);
+  if (props.status === 'pending') {
+    emit('reject', props.selected, note);
+  } else {
+    emit('unpublish', props.selected, note);
+  }
 }
 </script>
 
@@ -50,11 +57,13 @@ function rejectSelected() {
     <header class="admin-panel-header">
       <div>
         <p class="eyebrow">REVIEW DESK</p>
-        <h1 id="admin-panel-title">图表审核</h1>
-        <p>检查用户提交的代码，通过后立即进入公共图库。</p>
+        <h1 id="admin-panel-title">图表管理</h1>
+        <p>审核用户投稿，并管理已经进入公共图库的内容。</p>
       </div>
       <div class="admin-header-actions">
-        <span v-if="user?.role === 'admin'" class="review-count">{{ charts.length }} 条待审核</span>
+        <span v-if="user?.role === 'admin'" class="review-count">
+          {{ charts.length }} 条{{ status === 'pending' ? '待审核' : '已发布' }}
+        </span>
         <a class="back-to-gallery" href="/">返回图表库</a>
       </div>
     </header>
@@ -75,12 +84,29 @@ function rejectSelected() {
     </div>
 
     <template v-else>
+      <nav class="admin-tabs" aria-label="图表管理状态">
+        <button
+          type="button"
+          :class="{ active: status === 'pending' }"
+          @click="emit('update:status', 'pending')"
+        >
+          待审核
+        </button>
+        <button
+          type="button"
+          :class="{ active: status === 'published' }"
+          @click="emit('update:status', 'published')"
+        >
+          已发布
+        </button>
+      </nav>
+
       <p v-if="error" class="user-panel-error">{{ error }}</p>
 
       <div v-if="charts.length === 0 && !loading" class="admin-empty">
         <span>QUEUE CLEAR</span>
-        <strong>没有待审核图表</strong>
-        <p>新的用户提交会自动出现在这里。</p>
+        <strong>{{ status === 'pending' ? '没有待审核图表' : '没有已发布投稿' }}</strong>
+        <p>{{ status === 'pending' ? '新的用户提交会自动出现在这里。' : '审核通过的用户投稿会出现在这里。' }}</p>
       </div>
 
       <div v-else class="admin-review-layout">
@@ -124,7 +150,7 @@ function rejectSelected() {
             <pre>{{ selected.code }}</pre>
           </details>
 
-          <div class="review-actions">
+          <div v-if="status === 'pending'" class="review-actions">
             <button
               class="approve-button"
               type="button"
@@ -135,11 +161,22 @@ function rejectSelected() {
             </button>
             <label>
               拒绝原因
-              <textarea v-model="rejectNote" rows="3" placeholder="说明需要修改的问题"></textarea>
+              <textarea v-model="actionNote" rows="3" placeholder="说明需要修改的问题"></textarea>
             </label>
             <p v-if="localError" class="review-local-error">{{ localError }}</p>
-            <button class="reject-button" type="button" :disabled="loading" @click="rejectSelected">
+            <button class="reject-button" type="button" :disabled="loading" @click="submitSecondaryAction">
               拒绝并退回
+            </button>
+          </div>
+
+          <div v-else class="review-actions unpublish-actions">
+            <label>
+              下架原因
+              <textarea v-model="actionNote" rows="3" placeholder="说明下架原因，用户将看到此内容"></textarea>
+            </label>
+            <p v-if="localError" class="review-local-error">{{ localError }}</p>
+            <button class="reject-button" type="button" :disabled="loading" @click="submitSecondaryAction">
+              {{ loading ? '处理中' : '确认下架' }}
             </button>
           </div>
         </article>

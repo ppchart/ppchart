@@ -13,12 +13,12 @@ import {
   getOAuthLoginUrl,
   logout,
   reviewAdminChart,
+  unpublishAdminChart,
   updateMyChart
 } from '@/api/ppchart';
 import ChartGrid from '@/components/ChartGrid.vue';
 import HeaderBar from '@/components/HeaderBar.vue';
 import SearchPanel from '@/components/SearchPanel.vue';
-import UserChartPanel from '@/components/UserChartPanel.vue';
 import { chartTypes, runtimeFilters, type RuntimeFilter } from '@/data/chartTypes';
 import type { AdminChart, ChartDetail, ChartSummary, CurrentUser, UserChart, VisitStats } from '@/types/chart';
 import { normalizeCode } from '@/utils/format';
@@ -32,6 +32,7 @@ import {
 
 const AdminChartPanel = defineAsyncComponent(() => import('@/components/AdminChartPanel.vue'));
 const ChartDetailDrawer = defineAsyncComponent(() => import('@/components/ChartDetailDrawer.vue'));
+const UserChartPanel = defineAsyncComponent(() => import('@/components/UserChartPanel.vue'));
 type ThemeMode = 'light' | 'dark' | 'system';
 
 const charts = ref<ChartSummary[]>([]);
@@ -53,6 +54,7 @@ const authToken = ref(window.localStorage.getItem('ppchart-auth-token') || '');
 const currentUser = ref<CurrentUser | null>(null);
 const myCharts = ref<UserChart[]>([]);
 const adminCharts = ref<AdminChart[]>([]);
+const adminStatus = ref<'pending' | 'published'>('pending');
 const selectedAdminChart = ref<AdminChart | null>(null);
 const adminLoading = ref(false);
 const adminError = ref('');
@@ -227,7 +229,7 @@ async function loadAdminCharts() {
   adminLoading.value = true;
   adminError.value = '';
   try {
-    adminCharts.value = await fetchAdminCharts(authToken.value);
+    adminCharts.value = await fetchAdminCharts(authToken.value, adminStatus.value);
     selectedAdminChart.value =
       adminCharts.value.find(chart => chart.id === selectedAdminChart.value?.id) || adminCharts.value[0] || null;
   } catch (error) {
@@ -235,6 +237,12 @@ async function loadAdminCharts() {
   } finally {
     adminLoading.value = false;
   }
+}
+
+async function changeAdminStatus(status: 'pending' | 'published') {
+  adminStatus.value = status;
+  selectedAdminChart.value = null;
+  await loadAdminCharts();
 }
 
 async function reviewChart(chart: AdminChart, action: 'approve' | 'reject', note = '') {
@@ -249,6 +257,23 @@ async function reviewChart(chart: AdminChart, action: 'approve' | 'reject', note
     selectedAdminChart.value = adminCharts.value[0] || null;
   } catch (error) {
     adminError.value = error instanceof Error ? error.message : '审核操作失败';
+  } finally {
+    adminLoading.value = false;
+  }
+}
+
+async function unpublishChart(chart: AdminChart, note: string) {
+  if (!authToken.value) {
+    return;
+  }
+  adminLoading.value = true;
+  adminError.value = '';
+  try {
+    await unpublishAdminChart(authToken.value, chart.id, note);
+    adminCharts.value = adminCharts.value.filter(item => item.id !== chart.id);
+    selectedAdminChart.value = adminCharts.value[0] || null;
+  } catch (error) {
+    adminError.value = error instanceof Error ? error.message : '下架操作失败';
   } finally {
     adminLoading.value = false;
   }
@@ -399,12 +424,15 @@ onBeforeUnmount(() => {
       :user="currentUser"
       :charts="adminCharts"
       :selected="selectedAdminChart"
+      :status="adminStatus"
       :loading="adminLoading"
       :error="adminError"
       @login="loginWithProvider"
       @select="selectedAdminChart = $event"
+      @update:status="changeAdminStatus"
       @approve="reviewChart($event, 'approve')"
       @reject="(chart, note) => reviewChart(chart, 'reject', note)"
+      @unpublish="unpublishChart"
     />
 
     <UserChartPanel

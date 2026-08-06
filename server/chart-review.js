@@ -42,8 +42,27 @@ function buildReviewUpdate(action, note, reviewerUserId, now = new Date()) {
     : common;
 }
 
+function parseUnpublishInput(body = {}) {
+  const note = typeof body.note === "string" ? body.note.trim() : "";
+  if (!note) {
+    throw new Error("下架原因不能为空");
+  }
+  return { note };
+}
+
+function buildUnpublishUpdate(note, reviewerUserId, now = new Date()) {
+  return {
+    status: "unpublished",
+    reviewNote: note,
+    reviewedAt: now,
+    reviewerUserId,
+  };
+}
+
 module.exports = {
   buildPublicChartData,
   buildReviewUpdate,
+  buildUnpublishUpdate,
   parseReviewInput,
+  parseUnpublishInput,
 };

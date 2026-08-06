@@ -511,11 +511,18 @@ h1 {
   border-radius: 50%;
 }
 
+.user-chart-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+  gap: 14px;
+  align-items: start;
+  margin-top: 16px;
+}
+
 .user-chart-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 16px;
 }
 
 .user-chart-form label {
@@ -545,6 +552,46 @@ h1 {
   resize: vertical;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   line-height: 1.55;
+}
+
+.user-chart-preview {
+  min-height: 620px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--panel);
+}
+
+.user-chart-preview .preview-shell {
+  height: 620px;
+}
+
+.preview-placeholder {
+  display: grid;
+  min-height: 620px;
+  place-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.preview-placeholder span {
+  color: var(--accent);
+  font: 800 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.14em;
+}
+
+.preview-placeholder strong {
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.preview-placeholder p {
+  max-width: 320px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .my-chart-list {
@@ -600,6 +647,11 @@ h1 {
   color: var(--danger) !important;
 }
 
+.chart-status-unpublished {
+  border-color: color-mix(in srgb, #f59e0b 50%, var(--line)) !important;
+  color: #f59e0b !important;
+}
+
 .admin-panel {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -640,6 +692,41 @@ h1 {
   font: 800 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   padding: 11px 14px;
   text-transform: uppercase;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-tabs button {
+  position: relative;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  padding: 13px 18px;
+}
+
+.admin-tabs button::after {
+  position: absolute;
+  right: 18px;
+  bottom: -1px;
+  left: 18px;
+  height: 2px;
+  background: transparent;
+  content: '';
+}
+
+.admin-tabs button.active {
+  color: var(--ink);
+}
+
+.admin-tabs button.active::after {
+  background: var(--accent);
 }
 
 .admin-access-denied,
@@ -811,6 +898,14 @@ h1 {
   border-color: color-mix(in srgb, var(--danger) 55%, var(--line)) !important;
   background: transparent;
   color: var(--danger);
+}
+
+.unpublish-actions {
+  grid-template-columns: minmax(260px, 1fr) auto;
+}
+
+.unpublish-actions .review-local-error {
+  grid-column: 1;
 }
 
 .review-local-error {
@@ -1160,6 +1255,17 @@ dd {
   .workspace {
     grid-template-columns: 1fr;
   }
+
+  .user-chart-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .user-chart-preview,
+  .user-chart-preview .preview-shell,
+  .preview-placeholder {
+    min-height: 560px;
+    height: 560px;
+  }
 }
 
 @media (max-width: 780px) {
@@ -1256,6 +1362,10 @@ dd {
     grid-template-columns: 1fr;
   }
 
+  .unpublish-actions {
+    grid-template-columns: 1fr;
+  }
+
   .review-local-error {
     grid-column: auto;
   }
@@ -1266,6 +1376,13 @@ dd {
 
   .user-chart-form .span-2 {
     grid-column: auto;
+  }
+
+  .user-chart-preview,
+  .user-chart-preview .preview-shell,
+  .preview-placeholder {
+    min-height: 480px;
+    height: 480px;
   }
 
   .my-chart-list article {

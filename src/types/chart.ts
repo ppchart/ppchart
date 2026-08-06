@@ -50,7 +50,7 @@ export interface CurrentUser {
   role: 'user' | 'admin';
 }
 
-export type UserChartStatus = 'draft' | 'pending' | 'published' | 'rejected';
+export type UserChartStatus = 'draft' | 'pending' | 'published' | 'rejected' | 'unpublished';
 
 export interface UserChart {
   id: number;

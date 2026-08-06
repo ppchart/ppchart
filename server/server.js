@@ -15,7 +15,9 @@ const {
 const {
   buildPublicChartData,
   buildReviewUpdate,
+  buildUnpublishUpdate,
   parseReviewInput,
+  parseUnpublishInput,
 } = require("./chart-review");
 
 const getmac = require("getmac").default;
@@ -764,6 +766,67 @@ router.post("/admin/charts/:id/review", async (ctx) => {
     ctx.body = {
       code: ctx.status,
       message: error.status ? error.message : "审核操作失败",
+    };
+  }
+});
+
+router.post("/admin/charts/:id/unpublish", async (ctx) => {
+  const admin = await requireAdmin(ctx);
+  if (!admin) return;
+
+  const id = Number(ctx.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: "图表 ID 无效" };
+    return;
+  }
+
+  let unpublishInput;
+  try {
+    unpublishInput = parseUnpublishInput(ctx.request.body);
+  } catch (error) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: error.message };
+    return;
+  }
+
+  const existing = await userChart.model.findUnique({ where: { id } });
+  if (!existing) {
+    ctx.status = 404;
+    ctx.body = { code: 404, message: "图表不存在" };
+    return;
+  }
+  if (existing.status !== "published") {
+    ctx.status = 409;
+    ctx.body = { code: 409, message: "图表不是已发布状态" };
+    return;
+  }
+
+  try {
+    const unpublishedChart = await userChart.transaction(async (tx) => {
+      const claimed = await tx.user_chart.updateMany({
+        where: { id, status: "published" },
+        data: buildUnpublishUpdate(unpublishInput.note, admin.id),
+      });
+      if (claimed.count !== 1) {
+        const conflict = new Error("图表状态已被其他管理员修改");
+        conflict.status = 409;
+        throw conflict;
+      }
+
+      await tx.chart.deleteMany({ where: { cid: existing.cid } });
+      return tx.user_chart.findUnique({ where: { id } });
+    });
+
+    await invalidatePublicChartCache(existing.cid).catch((error) => {
+      console.error("invalidate chart cache failed", error);
+    });
+    ctx.body = { code: 0, data: unpublishedChart };
+  } catch (error) {
+    ctx.status = error.status || 500;
+    ctx.body = {
+      code: ctx.status,
+      message: error.status ? error.message : "下架操作失败",
     };
   }
 });

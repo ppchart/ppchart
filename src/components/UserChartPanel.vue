@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ChartPreview from '@/components/ChartPreview.vue';
 import type { CurrentUser, UserChart } from '@/types/chart';
 
 defineProps<{
@@ -36,7 +37,8 @@ const statusLabels = {
   draft: '草稿',
   pending: '审核中',
   published: '已发布',
-  rejected: '已拒绝'
+  rejected: '已拒绝',
+  unpublished: '已下架'
 } as const;
 
 function updateField(
@@ -81,52 +83,68 @@ function updateField(
     <template v-else>
       <div v-if="error" class="user-panel-error">{{ error }}</div>
 
-      <form class="user-chart-form" @submit.prevent="emit('save')">
-        <label>
-          图表标题
-          <input
-            :value="form.title"
-            placeholder="例如：渐变柱状图"
-            @input="updateField(form, 'title', ($event.target as HTMLInputElement).value)"
-          />
-        </label>
-        <label>
-          ECharts 版本
-          <input
-            :value="form.echartsVersion"
-            placeholder="例如：5.6.0"
-            @input="updateField(form, 'echartsVersion', ($event.target as HTMLInputElement).value)"
-          />
-        </label>
-        <label class="span-2">
-          描述
-          <input
-            :value="form.description"
-            placeholder="简单说明图表用途"
-            @input="updateField(form, 'description', ($event.target as HTMLInputElement).value)"
-          />
-        </label>
-        <label class="span-2">
-          图表代码
-          <textarea
-            :value="form.code"
-            rows="10"
-            placeholder="粘贴 ECharts option 或完整示例代码"
-            @input="updateField(form, 'code', ($event.target as HTMLTextAreaElement).value)"
-          ></textarea>
-        </label>
-        <label>
-          状态
-          <select :value="form.status" @change="updateField(form, 'status', ($event.target as HTMLSelectElement).value)">
-            <option value="draft">保存草稿</option>
-            <option value="pending">提交审核</option>
-          </select>
-        </label>
-        <div class="form-actions">
-          <button type="submit" :disabled="loading">{{ loading ? '保存中' : form.id ? '更新图表' : '保存图表' }}</button>
-          <button type="button" @click="emit('reset')">清空</button>
+      <div class="user-chart-editor">
+        <form class="user-chart-form" @submit.prevent="emit('save')">
+          <label>
+            图表标题
+            <input
+              :value="form.title"
+              placeholder="例如：渐变柱状图"
+              @input="updateField(form, 'title', ($event.target as HTMLInputElement).value)"
+            />
+          </label>
+          <label>
+            ECharts 版本
+            <input
+              :value="form.echartsVersion"
+              placeholder="例如：5.6.0"
+              @input="updateField(form, 'echartsVersion', ($event.target as HTMLInputElement).value)"
+            />
+          </label>
+          <label class="span-2">
+            描述
+            <input
+              :value="form.description"
+              placeholder="简单说明图表用途"
+              @input="updateField(form, 'description', ($event.target as HTMLInputElement).value)"
+            />
+          </label>
+          <label class="span-2">
+            图表代码
+            <textarea
+              :value="form.code"
+              rows="10"
+              placeholder="粘贴 ECharts option 或完整示例代码"
+              @input="updateField(form, 'code', ($event.target as HTMLTextAreaElement).value)"
+            ></textarea>
+          </label>
+          <label>
+            状态
+            <select
+              :value="form.status"
+              @change="updateField(form, 'status', ($event.target as HTMLSelectElement).value)"
+            >
+              <option value="draft">保存草稿</option>
+              <option value="pending">提交审核</option>
+            </select>
+          </label>
+          <div class="form-actions">
+            <button type="submit" :disabled="loading">
+              {{ loading ? '保存中' : form.id ? '更新图表' : '保存图表' }}
+            </button>
+            <button type="button" @click="emit('reset')">清空</button>
+          </div>
+        </form>
+
+        <div class="user-chart-preview">
+          <ChartPreview v-if="form.code.trim()" :code="form.code" />
+          <div v-else class="preview-placeholder">
+            <span>ISOLATED PREVIEW</span>
+            <strong>填写代码后运行预览</strong>
+            <p>代码将在 sandbox iframe 中执行，不会进入主页面上下文。</p>
+          </div>
         </div>
-      </form>
+      </div>
 
       <div class="my-chart-list">
         <h3>我的图表</h3>
@@ -137,12 +155,15 @@ function updateField(
             <span :class="`chart-status-${chart.status}`">{{ statusLabels[chart.status] }}</span>
           </div>
           <p>{{ chart.description || '暂无描述' }}</p>
-          <p v-if="chart.status === 'rejected' && chart.reviewNote" class="review-note">
-            拒绝原因：{{ chart.reviewNote }}
+          <p
+            v-if="(chart.status === 'rejected' || chart.status === 'unpublished') && chart.reviewNote"
+            class="review-note"
+          >
+            {{ chart.status === 'unpublished' ? '下架原因' : '拒绝原因' }}：{{ chart.reviewNote }}
           </p>
           <button v-if="chart.status !== 'pending'" type="button" @click="emit('edit', chart)">编辑</button>
           <button
-            v-if="chart.status === 'draft' || chart.status === 'rejected'"
+            v-if="chart.status === 'draft' || chart.status === 'rejected' || chart.status === 'unpublished'"
             type="button"
             @click="emit('remove', chart)"
           >

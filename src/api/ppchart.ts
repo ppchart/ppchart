@@ -101,10 +101,11 @@ export async function deleteMyChart(token: string, id: number) {
   await requestApi(`/my/charts/${id}`, { method: 'DELETE', token });
 }
 
-export async function fetchAdminCharts(token: string): Promise<AdminChart[]> {
-  const payload = await requestApi<{ code: number; data: AdminChart[] }>('/admin/charts?status=pending', {
-    token
-  });
+export async function fetchAdminCharts(
+  token: string,
+  status: 'pending' | 'published'
+): Promise<AdminChart[]> {
+  const payload = await requestApi<{ code: number; data: AdminChart[] }>(`/admin/charts?status=${status}`, { token });
   return payload.data || [];
 }
 
@@ -118,6 +119,15 @@ export async function reviewAdminChart(
     method: 'POST',
     token,
     body: { action, note }
+  });
+  return payload.data;
+}
+
+export async function unpublishAdminChart(token: string, id: number, note: string) {
+  const payload = await requestApi<{ code: number; data: AdminChart }>(`/admin/charts/${id}/unpublish`, {
+    method: 'POST',
+    token,
+    body: { note }
   });
   return payload.data;
 }
