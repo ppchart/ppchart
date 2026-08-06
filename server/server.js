@@ -12,6 +12,11 @@ const {
   fetchOAuthProfile,
   providerConfigs,
 } = require("./oauth");
+const {
+  buildPublicChartData,
+  buildReviewUpdate,
+  parseReviewInput,
+} = require("./chart-review");
 
 const getmac = require("getmac").default;
 
@@ -124,6 +129,19 @@ async function requireUser(ctx) {
   return user;
 }
 
+async function requireAdmin(ctx) {
+  const user = await requireUser(ctx);
+  if (!user) {
+    return null;
+  }
+  if (user.role !== "admin") {
+    ctx.status = 403;
+    ctx.body = { code: 403, message: "无管理员权限" };
+    return null;
+  }
+  return user;
+}
+
 function redirectWithToken(redirect, token) {
   const target = redirect || clientPath || "https://www.ppchart.com";
   const separator = target.includes("#") ? "&" : "#";
@@ -141,7 +159,28 @@ function normalizeChartPayload(body = {}) {
     code: isString(body.code) ? body.code : "",
     echartsVersion: isString(body.echartsVersion) && body.echartsVersion.trim() ? body.echartsVersion.trim() : null,
     status: body.status === "pending" ? "pending" : "draft",
+    reviewNote: null,
+    reviewedAt: null,
+    reviewerUserId: null,
   };
+}
+
+async function invalidatePublicChartCache(cid) {
+  let cursor = "0";
+  do {
+    const [nextCursor, keys] = await redis.scan(
+      cursor,
+      "MATCH",
+      "chart-list:*",
+      "COUNT",
+      100
+    );
+    cursor = nextCursor;
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
+  } while (cursor !== "0");
+  await redis.del(`chart-detail:${cid}`);
 }
 
 app.use(parseJsonBody);
@@ -534,6 +573,9 @@ router.get("/my/charts", async (ctx) => {
       createdAt: true,
       updatedAt: true,
       publishedAt: true,
+      reviewNote: true,
+      reviewedAt: true,
+      reviewerUserId: true,
     },
   });
   ctx.body = { code: 0, data: charts };
@@ -571,6 +613,11 @@ router.put("/my/charts/:id", async (ctx) => {
     ctx.body = { code: 404, message: "图表不存在" };
     return;
   }
+  if (existing.status === "pending") {
+    ctx.status = 409;
+    ctx.body = { code: 409, message: "图表审核中，暂时不能编辑" };
+    return;
+  }
 
   const payload = normalizeChartPayload(ctx.request.body);
   if (!payload.code.trim()) {
@@ -597,9 +644,128 @@ router.delete("/my/charts/:id", async (ctx) => {
     ctx.body = { code: 404, message: "图表不存在" };
     return;
   }
+  if (existing.status === "pending" || existing.status === "published") {
+    ctx.status = 409;
+    ctx.body = { code: 409, message: "审核中或已发布图表不能直接删除" };
+    return;
+  }
 
   await userChart.model.delete({ where: { id } });
   ctx.body = { code: 0, data: null };
+});
+
+router.get("/admin/charts", async (ctx) => {
+  const admin = await requireAdmin(ctx);
+  if (!admin) return;
+
+  const status = isString(ctx.query.status) ? ctx.query.status : "pending";
+  if (!["pending", "published", "rejected"].includes(status)) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: "审核状态无效" };
+    return;
+  }
+
+  const charts = await userChart.model.findMany({
+    where: { status },
+    orderBy: { updatedAt: "asc" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          provider: true,
+        },
+      },
+    },
+  });
+  ctx.body = { code: 0, data: charts };
+});
+
+router.post("/admin/charts/:id/review", async (ctx) => {
+  const admin = await requireAdmin(ctx);
+  if (!admin) return;
+
+  const id = Number(ctx.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: "图表 ID 无效" };
+    return;
+  }
+
+  let reviewInput;
+  try {
+    reviewInput = parseReviewInput(ctx.request.body);
+  } catch (error) {
+    ctx.status = 400;
+    ctx.body = { code: 400, message: error.message };
+    return;
+  }
+
+  const existing = await userChart.model.findUnique({
+    where: { id },
+    include: { user: true },
+  });
+  if (!existing) {
+    ctx.status = 404;
+    ctx.body = { code: 404, message: "图表不存在" };
+    return;
+  }
+  if (existing.status !== "pending") {
+    ctx.status = 409;
+    ctx.body = { code: 409, message: "图表已被审核" };
+    return;
+  }
+
+  try {
+    const reviewedChart = await userChart.transaction(async (tx) => {
+      const reviewData = buildReviewUpdate(
+        reviewInput.action,
+        reviewInput.note,
+        admin.id
+      );
+      const claimed = await tx.user_chart.updateMany({
+        where: { id, status: "pending" },
+        data: reviewData,
+      });
+      if (claimed.count !== 1) {
+        const conflict = new Error("图表已被其他管理员审核");
+        conflict.status = 409;
+        throw conflict;
+      }
+
+      if (reviewInput.action === "approve") {
+        const publicData = buildPublicChartData(existing);
+        const {
+          auth,
+          cid,
+          createTime,
+          viewCount,
+          ...publicUpdate
+        } = publicData;
+        await tx.chart.upsert({
+          where: { cid },
+          create: publicData,
+          update: publicUpdate,
+        });
+      }
+
+      return tx.user_chart.findUnique({ where: { id } });
+    });
+
+    if (reviewInput.action === "approve") {
+      await invalidatePublicChartCache(existing.cid).catch((error) => {
+        console.error("invalidate chart cache failed", error);
+      });
+    }
+    ctx.body = { code: 0, data: reviewedChart };
+  } catch (error) {
+    ctx.status = error.status || 500;
+    ctx.body = {
+      code: ctx.status,
+      message: error.status ? error.message : "审核操作失败",
+    };
+  }
 });
 
 app.use(router.routes()).use(router.allowedMethods());

@@ -32,6 +32,13 @@ const emit = defineEmits<{
   }];
 }>();
 
+const statusLabels = {
+  draft: '草稿',
+  pending: '审核中',
+  published: '已发布',
+  rejected: '已拒绝'
+} as const;
+
 function updateField(
   form: {
     id: number | null;
@@ -127,11 +134,20 @@ function updateField(
         <article v-for="chart in charts" :key="chart.id">
           <div>
             <strong>{{ chart.title }}</strong>
-            <span>{{ chart.status }}</span>
+            <span :class="`chart-status-${chart.status}`">{{ statusLabels[chart.status] }}</span>
           </div>
           <p>{{ chart.description || '暂无描述' }}</p>
-          <button type="button" @click="emit('edit', chart)">编辑</button>
-          <button type="button" @click="emit('remove', chart)">删除</button>
+          <p v-if="chart.status === 'rejected' && chart.reviewNote" class="review-note">
+            拒绝原因：{{ chart.reviewNote }}
+          </p>
+          <button v-if="chart.status !== 'pending'" type="button" @click="emit('edit', chart)">编辑</button>
+          <button
+            v-if="chart.status === 'draft' || chart.status === 'rejected'"
+            type="button"
+            @click="emit('remove', chart)"
+          >
+            删除
+          </button>
         </article>
       </div>
     </template>

@@ -71,6 +71,10 @@ export function isUserWorkspacePath(pathname = window.location.pathname) {
   return pathname === '/my-charts.html';
 }
 
+export function isAdminWorkspacePath(pathname = window.location.pathname) {
+  return pathname === '/admin-charts.html';
+}
+
 export function getTypeLabel(type: string) {
   return chartTypes.find(item => item.value === type)?.label || '全部';
 }

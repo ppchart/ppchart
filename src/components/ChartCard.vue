@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
 import type { ChartSummary } from '@/types/chart';
 import { formatCount, formatDate } from '@/utils/format';
 import { makeChartPath } from '@/utils/routes';
@@ -10,12 +12,21 @@ defineProps<{
 defineEmits<{
   open: [cid: string];
 }>();
+
+const thumbnailFailed = ref(false);
 </script>
 
 <template>
   <article class="chart-card">
     <a class="thumbnail-button" :href="makeChartPath(chart)" @click.prevent="$emit('open', chart.cid)">
-      <img :src="chart.thumbnailURL" :alt="chart.title" loading="lazy" />
+      <img
+        v-if="!thumbnailFailed"
+        :src="chart.thumbnailURL"
+        :alt="chart.title"
+        loading="lazy"
+        @error="thumbnailFailed = true"
+      />
+      <span v-else class="thumbnail-fallback">PPCHART</span>
     </a>
 
     <div class="chart-card-body">

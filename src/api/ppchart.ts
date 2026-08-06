@@ -1,4 +1,5 @@
 import type {
+  AdminChart,
   ChartDetail,
   ChartDetailResponse,
   ChartListResponse,
@@ -98,6 +99,27 @@ export async function updateMyChart(
 
 export async function deleteMyChart(token: string, id: number) {
   await requestApi(`/my/charts/${id}`, { method: 'DELETE', token });
+}
+
+export async function fetchAdminCharts(token: string): Promise<AdminChart[]> {
+  const payload = await requestApi<{ code: number; data: AdminChart[] }>('/admin/charts?status=pending', {
+    token
+  });
+  return payload.data || [];
+}
+
+export async function reviewAdminChart(
+  token: string,
+  id: number,
+  action: 'approve' | 'reject',
+  note = ''
+) {
+  const payload = await requestApi<{ code: number; data: AdminChart }>(`/admin/charts/${id}/review`, {
+    method: 'POST',
+    token,
+    body: { action, note }
+  });
+  return payload.data;
 }
 
 export async function fetchChartList(input: {

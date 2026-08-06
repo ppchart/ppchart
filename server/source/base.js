@@ -33,4 +33,8 @@ module.exports = class Base {
     executeRaw(...conditions) {
         return prisma.$executeRaw(...conditions)
     }
+
+    transaction(callback) {
+        return prisma.$transaction(callback)
+    }
 }

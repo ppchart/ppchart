@@ -29,6 +29,7 @@ defineEmits<{
       <a href="https://github.com/ppchart/ppchart" target="_blank" rel="noreferrer">GitHub</a>
       <template v-if="user">
         <a href="/my-charts.html">我的图表</a>
+        <a v-if="user.role === 'admin'" href="/admin-charts.html">审核管理</a>
         <span class="header-user">
           <img v-if="user.avatar" :src="user.avatar" alt="" />
           <span>{{ user.name || user.email || '已登录' }}</span>

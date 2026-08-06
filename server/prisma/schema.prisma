@@ -1,6 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl"]
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -107,6 +108,9 @@ model user_chart {
   createdAt      DateTime   @default(now()) @db.DateTime(0)
   updatedAt      DateTime   @updatedAt @db.DateTime(0)
   publishedAt    DateTime?  @db.DateTime(0)
+  reviewNote     String?    @db.Text
+  reviewedAt     DateTime?  @db.DateTime(0)
+  reviewerUserId Int?
   user           oauth_user @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, status], map: "user_chart_owner_status_index")

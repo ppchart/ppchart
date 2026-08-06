@@ -50,6 +50,8 @@ export interface CurrentUser {
   role: 'user' | 'admin';
 }
 
+export type UserChartStatus = 'draft' | 'pending' | 'published' | 'rejected';
+
 export interface UserChart {
   id: number;
   cid: string;
@@ -57,8 +59,15 @@ export interface UserChart {
   description: string | null;
   code: string;
   echartsVersion: string | null;
-  status: 'draft' | 'pending' | 'published';
+  status: UserChartStatus;
   createdAt: string;
   updatedAt: string;
   publishedAt: string | null;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  reviewerUserId: number | null;
+}
+
+export interface AdminChart extends UserChart {
+  user: Pick<CurrentUser, 'id' | 'name' | 'email' | 'provider'>;
 }

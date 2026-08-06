@@ -2,7 +2,7 @@ import { copyFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const distDir = path.resolve('dist');
-const routes = ['my-charts.html'];
+const routes = ['my-charts.html', 'admin-charts.html'];
 
 for (const route of routes) {
   const outputPath = path.join(distDir, route);

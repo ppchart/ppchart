@@ -4,6 +4,7 @@ import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, r
 import {
   createMyChart,
   deleteMyChart,
+  fetchAdminCharts,
   fetchChartDetail,
   fetchChartList,
   fetchCurrentUser,
@@ -11,6 +12,7 @@ import {
   fetchVisitStats,
   getOAuthLoginUrl,
   logout,
+  reviewAdminChart,
   updateMyChart
 } from '@/api/ppchart';
 import ChartGrid from '@/components/ChartGrid.vue';
@@ -18,10 +20,17 @@ import HeaderBar from '@/components/HeaderBar.vue';
 import SearchPanel from '@/components/SearchPanel.vue';
 import UserChartPanel from '@/components/UserChartPanel.vue';
 import { chartTypes, runtimeFilters, type RuntimeFilter } from '@/data/chartTypes';
-import type { ChartDetail, ChartSummary, CurrentUser, UserChart, VisitStats } from '@/types/chart';
+import type { AdminChart, ChartDetail, ChartSummary, CurrentUser, UserChart, VisitStats } from '@/types/chart';
 import { normalizeCode } from '@/utils/format';
-import { isUserWorkspacePath, makeTypePath, parseChartCid, parseTypeFromPath } from '@/utils/routes';
+import {
+  isAdminWorkspacePath,
+  isUserWorkspacePath,
+  makeTypePath,
+  parseChartCid,
+  parseTypeFromPath
+} from '@/utils/routes';
 
+const AdminChartPanel = defineAsyncComponent(() => import('@/components/AdminChartPanel.vue'));
 const ChartDetailDrawer = defineAsyncComponent(() => import('@/components/ChartDetailDrawer.vue'));
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -43,6 +52,10 @@ const stats = ref<VisitStats | null>(null);
 const authToken = ref(window.localStorage.getItem('ppchart-auth-token') || '');
 const currentUser = ref<CurrentUser | null>(null);
 const myCharts = ref<UserChart[]>([]);
+const adminCharts = ref<AdminChart[]>([]);
+const selectedAdminChart = ref<AdminChart | null>(null);
+const adminLoading = ref(false);
+const adminError = ref('');
 const userPanelLoading = ref(false);
 const userPanelError = ref('');
 const userChartForm = ref({
@@ -59,6 +72,8 @@ const initialListLoading = computed(() => listLoading.value && charts.value.leng
 const hasMoreCharts = computed(() => charts.value.length < total.value);
 const loadedCount = computed(() => Math.min(charts.value.length, total.value));
 const isUserWorkspace = computed(() => isUserWorkspacePath(currentPath.value));
+const isAdminWorkspace = computed(() => isAdminWorkspacePath(currentPath.value));
+const isPublicGallery = computed(() => !isUserWorkspace.value && !isAdminWorkspace.value);
 let loadMoreObserver: IntersectionObserver | null = null;
 
 function resolveTheme(mode: ThemeMode) {
@@ -176,6 +191,8 @@ async function loadCurrentUser() {
   if (!authToken.value) {
     currentUser.value = null;
     myCharts.value = [];
+    adminCharts.value = [];
+    selectedAdminChart.value = null;
     return;
   }
 
@@ -187,8 +204,53 @@ async function loadCurrentUser() {
       return;
     }
     myCharts.value = isUserWorkspace.value ? await fetchMyCharts(authToken.value) : [];
+    if (isAdminWorkspace.value && currentUser.value.role === 'admin') {
+      await loadAdminCharts();
+    } else {
+      adminCharts.value = [];
+      selectedAdminChart.value = null;
+    }
   } catch (error) {
-    userPanelError.value = error instanceof Error ? error.message : '用户信息读取失败';
+    const message = error instanceof Error ? error.message : '用户信息读取失败';
+    if (isAdminWorkspace.value) {
+      adminError.value = message;
+    } else {
+      userPanelError.value = message;
+    }
+  }
+}
+
+async function loadAdminCharts() {
+  if (!authToken.value) {
+    return;
+  }
+  adminLoading.value = true;
+  adminError.value = '';
+  try {
+    adminCharts.value = await fetchAdminCharts(authToken.value);
+    selectedAdminChart.value =
+      adminCharts.value.find(chart => chart.id === selectedAdminChart.value?.id) || adminCharts.value[0] || null;
+  } catch (error) {
+    adminError.value = error instanceof Error ? error.message : '待审核图表读取失败';
+  } finally {
+    adminLoading.value = false;
+  }
+}
+
+async function reviewChart(chart: AdminChart, action: 'approve' | 'reject', note = '') {
+  if (!authToken.value) {
+    return;
+  }
+  adminLoading.value = true;
+  adminError.value = '';
+  try {
+    await reviewAdminChart(authToken.value, chart.id, action, note);
+    adminCharts.value = adminCharts.value.filter(item => item.id !== chart.id);
+    selectedAdminChart.value = adminCharts.value[0] || null;
+  } catch (error) {
+    adminError.value = error instanceof Error ? error.message : '审核操作失败';
+  } finally {
+    adminLoading.value = false;
   }
 }
 
@@ -199,6 +261,8 @@ async function logoutCurrentUser() {
   authToken.value = '';
   currentUser.value = null;
   myCharts.value = [];
+  adminCharts.value = [];
+  selectedAdminChart.value = null;
   window.localStorage.removeItem('ppchart-auth-token');
   resetUserChartForm();
 }
@@ -278,7 +342,7 @@ onMounted(async () => {
   systemDarkQuery.addEventListener('change', applyTheme);
   window.addEventListener('popstate', syncCurrentPath);
 
-  if (!isUserWorkspace.value) {
+  if (isPublicGallery.value) {
     loadCharts({ reset: true });
   }
   fetchVisitStats()
@@ -290,7 +354,7 @@ onMounted(async () => {
     });
   loadCurrentUser();
 
-  if (!isUserWorkspace.value) {
+  if (isPublicGallery.value) {
     const routeCid = parseChartCid();
     const hashCid = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('chart');
     if (routeCid || hashCid) {
@@ -299,7 +363,7 @@ onMounted(async () => {
   }
 
   await nextTick();
-  if (!isUserWorkspace.value && loadMoreTrigger.value) {
+  if (isPublicGallery.value && loadMoreTrigger.value) {
     loadMoreObserver = new IntersectionObserver(
       entries => {
         if (entries.some(entry => entry.isIntersecting)) {
@@ -329,9 +393,22 @@ onBeforeUnmount(() => {
     @logout="logoutCurrentUser"
   />
 
-  <main :class="{ 'workspace-page': isUserWorkspace }">
+  <main :class="{ 'workspace-page': isUserWorkspace || isAdminWorkspace }">
+    <AdminChartPanel
+      v-if="isAdminWorkspace"
+      :user="currentUser"
+      :charts="adminCharts"
+      :selected="selectedAdminChart"
+      :loading="adminLoading"
+      :error="adminError"
+      @login="loginWithProvider"
+      @select="selectedAdminChart = $event"
+      @approve="reviewChart($event, 'approve')"
+      @reject="(chart, note) => reviewChart(chart, 'reject', note)"
+    />
+
     <UserChartPanel
-      v-if="isUserWorkspace"
+      v-else-if="isUserWorkspace"
       v-model:form="userChartForm"
       :user="currentUser"
       :charts="myCharts"
