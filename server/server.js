@@ -305,9 +305,17 @@ router.get("/chart-list", async (ctx) => {
         },
       },
     });
+  } else if (runtimeFilter === "user") {
+    filters.push({ cid: { startsWith: "user-" } });
   }
 
   let where = filters.length > 0 ? { AND: filters } : {};
+  const orderBy =
+    runtimeFilter === "user"
+      ? { createTime: "desc" }
+      : type == 1
+      ? undefined
+      : { viewCount: "desc" };
 
   if (search && isString(search)) {
     const searchFilters = search
@@ -334,7 +342,7 @@ router.get("/chart-list", async (ctx) => {
             // }
           },
           where,
-          orderBy: type == 1 ? undefined : { viewCount: "desc" },
+          orderBy,
         },
       })
       .catch(() => {
@@ -372,7 +380,7 @@ router.get("/chart-list", async (ctx) => {
                 // }
               },
               where,
-              orderBy: type == 1 ? undefined : { viewCount: "desc" },
+              orderBy,
             },
           })
           .then((data) => {

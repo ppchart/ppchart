@@ -77,6 +77,7 @@ const isUserWorkspace = computed(() => isUserWorkspacePath(currentPath.value));
 const isAdminWorkspace = computed(() => isAdminWorkspacePath(currentPath.value));
 const isPublicGallery = computed(() => !isUserWorkspace.value && !isAdminWorkspace.value);
 let loadMoreObserver: IntersectionObserver | null = null;
+let listRequestVersion = 0;
 
 function resolveTheme(mode: ThemeMode) {
   return mode === 'system' ? (systemDarkQuery.matches ? 'dark' : 'light') : mode;
@@ -95,7 +96,7 @@ function updateThemeMode(mode: ThemeMode) {
 }
 
 async function loadCharts(options: { reset?: boolean } = {}) {
-  if (listLoading.value) {
+  if (listLoading.value && !options.reset) {
     return;
   }
 
@@ -104,6 +105,7 @@ async function loadCharts(options: { reset?: boolean } = {}) {
     return;
   }
 
+  const requestVersion = ++listRequestVersion;
   listLoading.value = true;
   listError.value = '';
 
@@ -114,10 +116,16 @@ async function loadCharts(options: { reset?: boolean } = {}) {
       runtime: runtimeFilter.value,
       search: search.value
     });
+    if (requestVersion !== listRequestVersion) {
+      return;
+    }
     charts.value = options.reset ? result.items : mergeCharts(charts.value, result.items);
     total.value = result.total;
     page.value = nextPage;
   } catch (error) {
+    if (requestVersion !== listRequestVersion) {
+      return;
+    }
     listError.value = error instanceof Error ? error.message : '图表列表获取失败';
     if (options.reset) {
       charts.value = [];
@@ -125,7 +133,9 @@ async function loadCharts(options: { reset?: boolean } = {}) {
       page.value = 1;
     }
   } finally {
-    listLoading.value = false;
+    if (requestVersion === listRequestVersion) {
+      listLoading.value = false;
+    }
   }
 }
 
@@ -168,6 +178,13 @@ function closeDetail() {
 
 function submitSearch() {
   resetCharts();
+}
+
+function updateRuntimeFilter(value: RuntimeFilter) {
+  if (value === 'user') {
+    activeType.value = '';
+  }
+  runtimeFilter.value = value;
 }
 
 function resetUserChartForm() {
@@ -453,10 +470,11 @@ onBeforeUnmount(() => {
       <SearchPanel
         v-model:search="search"
         v-model:active-type="activeType"
-        v-model:runtime-filter="runtimeFilter"
+        :runtime-filter="runtimeFilter"
         :types="chartTypes"
         :runtime-filters="runtimeFilters"
         :loading="listLoading"
+        @update:runtime-filter="updateRuntimeFilter"
         @submit="submitSearch"
       />
 

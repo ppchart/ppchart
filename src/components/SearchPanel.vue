@@ -43,8 +43,8 @@ const emit = defineEmits<{
     </form>
 
     <div class="filter-groups">
-      <div class="filter-group runtime-filter" aria-label="运行状态">
-        <span>运行状态</span>
+      <div class="filter-group runtime-filter" aria-label="内容范围">
+        <span>内容范围</span>
         <button
           v-for="item in runtimeFilters"
           :key="item.value"
