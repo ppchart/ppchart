@@ -113,12 +113,13 @@ export async function reviewAdminChart(
   token: string,
   id: number,
   action: 'approve' | 'reject',
-  note = ''
+  note = '',
+  thumbnail = ''
 ) {
   const payload = await requestApi<{ code: number; data: AdminChart }>(`/admin/charts/${id}/review`, {
     method: 'POST',
     token,
-    body: { action, note }
+    body: thumbnail ? { action, note, thumbnail } : { action, note }
   });
   return payload.data;
 }
@@ -200,6 +201,6 @@ export async function fetchVisitStats(): Promise<VisitStats | null> {
 function normalizeSummary(item: ChartSummary): ChartSummary {
   return {
     ...item,
-    thumbnailURL: `${ASSET_BASE}/ecg-storage/ec_gallery_thumbnail/${item.cid}.jpg`
+    thumbnailURL: item.thumbnailURL || `${ASSET_BASE}/ecg-storage/ec_gallery_thumbnail/${item.cid}.jpg`
   };
 }

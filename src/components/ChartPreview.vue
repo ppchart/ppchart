@@ -55,6 +55,7 @@ const frameSource = computed(() => `<!doctype html>
       const chart = echarts.init(chartNode);
       const assetBase = ${JSON.stringify(ASSET_BASE)};
       let activeRunId = 0;
+      let hasSuccessfulRender = false;
       const trackedTimers = new Set();
       const nativeSetTimeout = window.setTimeout.bind(window);
       const nativeSetInterval = window.setInterval.bind(window);
@@ -342,6 +343,7 @@ const frameSource = computed(() => `<!doctype html>
 
       async function render(code) {
         activeRunId += 1;
+        hasSuccessfulRender = false;
         clearTrackedTimers();
         errorNode.style.display = 'none';
         errorNode.textContent = '';
@@ -367,6 +369,7 @@ const frameSource = computed(() => `<!doctype html>
             await ensureDefaultMaps();
             runChartCode(normalizedCode);
           }
+          hasSuccessfulRender = true;
           parent.postMessage({ source: 'ppchart-preview', type: 'success' }, '*');
         } catch (error) {
           reportError(error && error.stack ? error.stack : String(error));
@@ -375,6 +378,32 @@ const frameSource = computed(() => `<!doctype html>
 
       window.addEventListener('message', event => {
         if (event.data && event.data.source === 'ppchart-host') {
+          if (event.data.type === 'capture') {
+            try {
+              if (!hasSuccessfulRender) {
+                throw new Error('图表尚未成功渲染');
+              }
+              const dataUrl = chart.getDataURL({
+                type: 'png',
+                pixelRatio: 1,
+                backgroundColor: '#f8fafc'
+              });
+              parent.postMessage({
+                source: 'ppchart-preview',
+                type: 'capture-success',
+                requestId: event.data.requestId,
+                dataUrl
+              }, '*');
+            } catch (error) {
+              parent.postMessage({
+                source: 'ppchart-preview',
+                type: 'capture-error',
+                requestId: event.data.requestId,
+                message: error && error.message ? error.message : String(error)
+              }, '*');
+            }
+            return;
+          }
           render(event.data.code || '');
         }
       });
@@ -402,8 +431,81 @@ function reloadAndRun() {
   });
 }
 
+interface PendingCapture {
+  resolve: (dataUrl: string) => void;
+  reject: (error: Error) => void;
+  timer: number;
+}
+
+const pendingCaptures = new Map<string, PendingCapture>();
+let captureSequence = 0;
+
+function settleCapture(
+  requestId: string,
+  handler: (pending: PendingCapture) => void
+) {
+  const pending = pendingCaptures.get(requestId);
+  if (!pending) {
+    return;
+  }
+  window.clearTimeout(pending.timer);
+  pendingCaptures.delete(requestId);
+  handler(pending);
+}
+
+function capture(): Promise<string> {
+  const contentWindow = frameRef.value?.contentWindow;
+  if (!contentWindow) {
+    return Promise.reject(new Error('图表预览尚未加载'));
+  }
+
+  const requestId = `capture-${Date.now()}-${++captureSequence}`;
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      settleCapture(requestId, pending => {
+        pending.reject(new Error('缩略图生成超时，请重新运行预览后重试'));
+      });
+    }, 5000);
+    pendingCaptures.set(requestId, { resolve, reject, timer });
+    contentWindow.postMessage(
+      {
+        source: 'ppchart-host',
+        type: 'capture',
+        requestId
+      },
+      '*'
+    );
+  });
+}
+
 function handlePreviewMessage(event: MessageEvent) {
-  if (event.data?.source !== 'ppchart-preview') {
+  if (
+    event.source !== frameRef.value?.contentWindow ||
+    event.data?.source !== 'ppchart-preview'
+  ) {
+    return;
+  }
+
+  if (
+    event.data.type === 'capture-success' &&
+    typeof event.data.requestId === 'string' &&
+    typeof event.data.dataUrl === 'string'
+  ) {
+    settleCapture(event.data.requestId, pending => {
+      pending.resolve(event.data.dataUrl);
+    });
+    return;
+  }
+
+  if (
+    event.data.type === 'capture-error' &&
+    typeof event.data.requestId === 'string'
+  ) {
+    settleCapture(event.data.requestId, pending => {
+      pending.reject(
+        new Error(event.data.message || '缩略图生成失败')
+      );
+    });
     return;
   }
 
@@ -416,6 +518,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('message', handlePreviewMessage);
+  pendingCaptures.forEach(pending => {
+    window.clearTimeout(pending.timer);
+    pending.reject(new Error('图表预览已关闭'));
+  });
+  pendingCaptures.clear();
 });
 
 watch(
@@ -424,6 +531,8 @@ watch(
     error.value = '';
   }
 );
+
+defineExpose({ capture });
 </script>
 
 <template>

@@ -1,6 +1,8 @@
 function parseReviewInput(body = {}) {
   const action = body.action;
   const note = typeof body.note === "string" ? body.note.trim() : "";
+  const thumbnail =
+    typeof body.thumbnail === "string" ? body.thumbnail.trim() : "";
 
   if (!["approve", "reject"].includes(action)) {
     throw new Error("审核动作无效");
@@ -8,11 +10,18 @@ function parseReviewInput(body = {}) {
   if (action === "reject" && !note) {
     throw new Error("拒绝原因不能为空");
   }
+  if (action === "approve" && !thumbnail) {
+    throw new Error("缩略图不能为空");
+  }
 
-  return { action, note };
+  return { action, note, thumbnail };
 }
 
-function buildPublicChartData(sourceChart, now = new Date()) {
+function buildPublicChartData(
+  sourceChart,
+  thumbnailURL,
+  now = new Date()
+) {
   return {
     cid: sourceChart.cid,
     title: sourceChart.title,
@@ -23,6 +32,8 @@ function buildPublicChartData(sourceChart, now = new Date()) {
     lastUpdateTime: now,
     viewCount: 0,
     auth: 0,
+    isCustomThumbnail: 1,
+    thumbnailURL,
   };
 }
 

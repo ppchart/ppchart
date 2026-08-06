@@ -262,14 +262,19 @@ async function changeAdminStatus(status: 'pending' | 'published') {
   await loadAdminCharts();
 }
 
-async function reviewChart(chart: AdminChart, action: 'approve' | 'reject', note = '') {
+async function reviewChart(
+  chart: AdminChart,
+  action: 'approve' | 'reject',
+  note = '',
+  thumbnail = ''
+) {
   if (!authToken.value) {
     return;
   }
   adminLoading.value = true;
   adminError.value = '';
   try {
-    await reviewAdminChart(authToken.value, chart.id, action, note);
+    await reviewAdminChart(authToken.value, chart.id, action, note, thumbnail);
     adminCharts.value = adminCharts.value.filter(item => item.id !== chart.id);
     selectedAdminChart.value = adminCharts.value[0] || null;
   } catch (error) {
@@ -447,7 +452,7 @@ onBeforeUnmount(() => {
       @login="loginWithProvider"
       @select="selectedAdminChart = $event"
       @update:status="changeAdminStatus"
-      @approve="reviewChart($event, 'approve')"
+      @approve="(chart, thumbnail) => reviewChart(chart, 'approve', '', thumbnail)"
       @reject="(chart, note) => reviewChart(chart, 'reject', note)"
       @unpublish="unpublishChart"
     />

@@ -7,15 +7,27 @@ const {
   parseUnpublishInput,
 } = require("../chart-review");
 
-assert.deepStrictEqual(parseReviewInput({ action: "approve" }), {
-  action: "approve",
-  note: "",
-});
+assert.throws(
+  () => parseReviewInput({ action: "approve" }),
+  /缩略图不能为空/
+);
+assert.deepStrictEqual(
+  parseReviewInput({
+    action: "approve",
+    thumbnail: "data:image/png;base64,AA==",
+  }),
+  {
+    action: "approve",
+    note: "",
+    thumbnail: "data:image/png;base64,AA==",
+  }
+);
 assert.deepStrictEqual(
   parseReviewInput({ action: "reject", note: "  代码无法运行  " }),
   {
     action: "reject",
     note: "代码无法运行",
+    thumbnail: "",
   }
 );
 assert.throws(
@@ -34,11 +46,15 @@ const sourceChart = {
   code: "option = {}",
   echartsVersion: "5.6.0",
 };
-const publicChart = buildPublicChartData(sourceChart);
+const thumbnailURL =
+  "https://ppchart.com/thumbnails/user/user-1-demo.png";
+const publicChart = buildPublicChartData(sourceChart, thumbnailURL);
 assert.strictEqual(publicChart.cid, sourceChart.cid);
 assert.strictEqual(publicChart.title, sourceChart.title);
 assert.strictEqual(publicChart.code, sourceChart.code);
 assert.strictEqual(publicChart.viewCount, 0);
+assert.strictEqual(publicChart.thumbnailURL, thumbnailURL);
+assert.strictEqual(publicChart.isCustomThumbnail, 1);
 assert.ok(publicChart.createTime instanceof Date);
 assert.ok(publicChart.lastUpdateTime instanceof Date);
 

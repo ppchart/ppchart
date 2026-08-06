@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@prisma/client": "^3.8.1",
+    "ali-oss": "6.23.0",
     "dotenv": "^16.0.0",
     "getmac": "^5.20.0",
     "ioredis": "^4.28.3",

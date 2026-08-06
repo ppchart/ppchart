@@ -144,10 +144,10 @@ Cache-Control: public, max-age=31536000
 数据库 URL：
 
 ```text
-https://ppchart.com/thumbnails/user/{cid}.png
+https://ppchart.com/thumbnails/user/{cid}.png?v={pngSha256前12位}
 ```
 
-同一投稿再次审核时覆盖同一路径。文件名不接收客户端输入，只使用服务端已保存的 CID。
+同一投稿再次审核时覆盖同一路径。公开 URL 带图片内容哈希，图片变化时 URL 随之变化，避免一年缓存命中旧图。文件名不接收客户端输入，只使用服务端已保存的 CID。
 
 ## 发布顺序与一致性
 
@@ -218,7 +218,7 @@ thumbnailURL:
 1. 创建一条临时待审核投稿。
 2. 管理员在真实审核页预览并通过。
 3. 验证审核按钮先生成图片再发请求。
-4. 验证数据库 `chart.thumbnailURL` 是固定 OSS URL。
+4. 验证数据库 `chart.thumbnailURL` 是固定 OSS 路径并带内容哈希版本参数。
 5. 验证 OSS URL 返回 `200`、`Content-Type: image/png`。
 6. 验证公共“用户投稿”列表显示真实图，而非占位图。
 7. 验证无缩略图直接调用通过 API 返回 `400`，投稿状态不变。

@@ -19,6 +19,10 @@ const {
   parseReviewInput,
   parseUnpublishInput,
 } = require("./chart-review");
+const {
+  parsePngDataUrl,
+  uploadChartThumbnail,
+} = require("./chart-thumbnail");
 
 const getmac = require("getmac").default;
 
@@ -69,6 +73,7 @@ const redis = new Redis({
 
 const limitNumberShort = 50;
 const limitNumberLong = 666;
+const MAX_JSON_BODY_BYTES = 5 * 1024 * 1024;
 
 app.proxy = true;
 
@@ -79,13 +84,45 @@ async function parseJsonBody(ctx, next) {
     return next();
   }
 
+  const contentLength = Number(ctx.get("content-length"));
+  if (
+    Number.isFinite(contentLength) &&
+    contentLength > MAX_JSON_BODY_BYTES
+  ) {
+    ctx.status = 413;
+    ctx.body = {
+      code: 413,
+      message: "请求体不能超过 5 MB",
+    };
+    return;
+  }
+
   const chunks = [];
+  let bodyBytes = 0;
   for await (const chunk of ctx.req) {
+    bodyBytes += chunk.length;
+    if (bodyBytes > MAX_JSON_BODY_BYTES) {
+      ctx.status = 413;
+      ctx.body = {
+        code: 413,
+        message: "请求体不能超过 5 MB",
+      };
+      return;
+    }
     chunks.push(chunk);
   }
 
   const rawBody = Buffer.concat(chunks).toString("utf8");
-  ctx.request.body = rawBody ? JSON.parse(rawBody) : {};
+  try {
+    ctx.request.body = rawBody ? JSON.parse(rawBody) : {};
+  } catch (error) {
+    ctx.status = 400;
+    ctx.body = {
+      code: 400,
+      message: "JSON 请求体无效",
+    };
+    return;
+  }
   return next();
 }
 
@@ -727,6 +764,26 @@ router.post("/admin/charts/:id/review", async (ctx) => {
     return;
   }
 
+  let thumbnailURL = null;
+  if (reviewInput.action === "approve") {
+    try {
+      const png = parsePngDataUrl(reviewInput.thumbnail);
+      thumbnailURL = await uploadChartThumbnail({
+        cid: existing.cid,
+        png,
+      });
+    } catch (error) {
+      ctx.status = error.status || 503;
+      ctx.body = {
+        code: ctx.status,
+        message: error.status
+          ? error.message
+          : "缩略图上传失败",
+      };
+      return;
+    }
+  }
+
   try {
     const reviewedChart = await userChart.transaction(async (tx) => {
       const reviewData = buildReviewUpdate(
@@ -745,7 +802,10 @@ router.post("/admin/charts/:id/review", async (ctx) => {
       }
 
       if (reviewInput.action === "approve") {
-        const publicData = buildPublicChartData(existing);
+        const publicData = buildPublicChartData(
+          existing,
+          thumbnailURL
+        );
         const {
           auth,
           cid,

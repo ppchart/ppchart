@@ -1,6 +1,6 @@
 # PPChart 用户投稿缩略图实施计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 审核通过用户投稿时生成真实 PNG 缩略图、上传 OSS、写入公共图表记录，并让图库展示该图片。
 
@@ -17,7 +17,7 @@
 - Create: `server/tests/chart-thumbnail.test.js`
 - Modify: `server/package.json`
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 测试覆盖：
 
@@ -55,11 +55,11 @@ assert.strictEqual(captured.key, "thumbnails/user/user-1-demo.png");
 assert.strictEqual(captured.options.headers["Content-Type"], "image/png");
 assert.strictEqual(
   result,
-  "https://ppchart.com/thumbnails/user/user-1-demo.png"
+  "https://ppchart.com/thumbnails/user/user-1-demo.png?v=843ac23b1736"
 );
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run:
 
@@ -70,7 +70,7 @@ node tests/chart-thumbnail.test.js
 
 Expected: FAIL，提示 `../chart-thumbnail` 不存在。
 
-- [ ] **Step 3: 实现图片模块**
+- [x] **Step 3: 实现图片模块**
 
 `server/chart-thumbnail.js` 导出：
 
@@ -93,11 +93,12 @@ async function uploadChartThumbnail({
 - 校验 PNG 八字节签名。
 - 限制解码后 3 MB。
 - CID 只允许 `user-` 开头的字母、数字和连字符。
+- 公开 URL 附加 PNG SHA-256 前 12 位作为 `v` 查询参数，防止覆盖后读取旧缓存。
 - 使用 `ali-oss@6.23.0`。
 - OSS 配置缺失或上传失败抛出 `status = 503` 的统一错误。
 - 不在错误中包含凭据或图片正文。
 
-- [ ] **Step 4: 运行测试确认通过**
+- [x] **Step 4: 运行测试确认通过**
 
 Run:
 
@@ -114,7 +115,7 @@ Expected: `chart-thumbnail tests passed`。
 - Modify: `server/chart-review.js`
 - Modify: `server/tests/chart-review.test.js`
 
-- [ ] **Step 1: 扩展失败测试**
+- [x] **Step 1: 扩展失败测试**
 
 审核通过必须带缩略图：
 
@@ -150,7 +151,7 @@ assert.strictEqual(
 );
 ```
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run:
 
@@ -161,7 +162,7 @@ npm run test:review
 
 Expected: FAIL，审核合同和公共字段与新断言不一致。
 
-- [ ] **Step 3: 实现最小合同**
+- [x] **Step 3: 实现最小合同**
 
 `parseReviewInput()`：
 
@@ -174,7 +175,7 @@ Expected: FAIL，审核合同和公共字段与新断言不一致。
 - 写入 `thumbnailURL`。
 - 写入 `isCustomThumbnail: 1`。
 
-- [ ] **Step 4: 运行审核测试**
+- [x] **Step 4: 运行审核测试**
 
 Run:
 
@@ -193,7 +194,7 @@ Expected: `chart-review tests passed`。
 - Modify: `src/App.vue`
 - Modify: `src/api/ppchart.ts`
 
-- [ ] **Step 1: 在 iframe 中处理截图请求**
+- [x] **Step 1: 在 iframe 中处理截图请求**
 
 iframe 收到：
 
@@ -215,7 +216,7 @@ if (event.data.type === "capture") {
 
 异常返回 `capture-error`。
 
-- [ ] **Step 2: 暴露 Promise 截图 API**
+- [x] **Step 2: 暴露 Promise 截图 API**
 
 `ChartPreview.vue` 暴露：
 
@@ -227,7 +228,7 @@ defineExpose({
 
 使用 `requestId` 匹配响应，5 秒超时；组件卸载时拒绝并清空待处理请求。所有预览消息校验 `event.source === frameRef.value?.contentWindow`。
 
-- [ ] **Step 3: 审核按钮先截图**
+- [x] **Step 3: 审核按钮先截图**
 
 `AdminChartPanel.vue`：
 
@@ -237,7 +238,7 @@ approve: [chart: AdminChart, thumbnail: string];
 
 点击时调用预览组件 `capture()`，成功后 emit；失败时展示本地错误。截图期间禁用审核按钮并显示“生成缩略图”。
 
-- [ ] **Step 4: 将图片传入 API**
+- [x] **Step 4: 将图片传入 API**
 
 调用链统一为：
 
@@ -254,7 +255,7 @@ reviewAdminChart(token, chart.id, 'approve', '', thumbnail)
 
 拒绝请求不发送图片。
 
-- [ ] **Step 5: 运行前端类型检查**
+- [x] **Step 5: 运行前端类型检查**
 
 Run:
 
@@ -269,7 +270,7 @@ Expected: 退出码 0。
 **Files:**
 - Modify: `server/server.js`
 
-- [ ] **Step 1: 限制 JSON 请求体**
+- [x] **Step 1: 限制 JSON 请求体**
 
 `parseJsonBody()` 累计字节数，超过：
 
@@ -283,7 +284,7 @@ const MAX_JSON_BODY_BYTES = 5 * 1024 * 1024;
 { "code": 413, "message": "请求体不能超过 5 MB" }
 ```
 
-- [ ] **Step 2: 上传后再发布**
+- [x] **Step 2: 上传后再发布**
 
 审核通过分支在事务前执行：
 
@@ -305,7 +306,7 @@ buildPublicChartData(existing, thumbnailURL)
 
 拒绝分支不调用 OSS。
 
-- [ ] **Step 3: 校验服务端**
+- [x] **Step 3: 校验服务端**
 
 Run:
 
@@ -323,7 +324,7 @@ Expected: 两组测试和语法检查全部通过。
 **Files:**
 - Modify: `src/api/ppchart.ts`
 
-- [ ] **Step 1: 保留数据库 URL**
+- [x] **Step 1: 保留数据库 URL**
 
 修改：
 
@@ -338,7 +339,7 @@ function normalizeSummary(item: ChartSummary): ChartSummary {
 }
 ```
 
-- [ ] **Step 2: 生产构建**
+- [x] **Step 2: 生产构建**
 
 Run:
 
@@ -354,7 +355,7 @@ Expected: Vue 类型检查、Vite 构建和静态入口生成成功。
 - Modify: `docs/superpowers/plans/2026-08-06-user-chart-thumbnail.md`
 - Modify: `/Users/bytedance/Desktop/geiha/ppchart-update-runbook.md`
 
-- [ ] **Step 1: 配置生产 OSS 环境**
+- [x] **Step 1: 配置生产 OSS 环境**
 
 在服务器运行时环境增加：
 
@@ -368,14 +369,14 @@ OSS_PUBLIC_BASE_URL=https://ppchart.com
 
 文件权限保持 `600`，日志和 Git 中不输出 Secret。
 
-- [ ] **Step 2: 构建完整后端镜像并发布前端**
+- [x] **Step 2: 构建完整后端镜像并发布前端**
 
 - 新镜像必须包含 `ali-oss@6.23.0`。
 - 保留当前镜像回滚标签。
 - 上传新 hashed assets 和三个 HTML 入口。
 - 健康检查 `/api/visit` 返回 `200`。
 
-- [ ] **Step 3: 验证失败阻断**
+- [x] **Step 3: 验证失败阻断**
 
 创建临时待审核投稿，直接调用不带 `thumbnail` 的审核通过请求：
 
@@ -383,7 +384,7 @@ OSS_PUBLIC_BASE_URL=https://ppchart.com
 - `user_chart.status` 仍为 `pending`。
 - 公共 `chart` 不存在。
 
-- [ ] **Step 4: 浏览器完成真实审核**
+- [x] **Step 4: 浏览器完成真实审核**
 
 在生产管理端：
 
@@ -392,14 +393,14 @@ OSS_PUBLIC_BASE_URL=https://ppchart.com
 - 验证没有控制台错误。
 - 验证投稿从待审核队列移除。
 
-- [ ] **Step 5: 验证图片与数据库**
+- [x] **Step 5: 验证图片与数据库**
 
-- `chart.thumbnailURL` 等于 `https://ppchart.com/thumbnails/user/{cid}.png`。
+- `chart.thumbnailURL` 使用 `https://ppchart.com/thumbnails/user/{cid}.png?v={内容哈希}`。
 - `chart.isCustomThumbnail = 1`。
 - 图片 URL 返回 `200` 和 `image/png`。
 - 公共“用户投稿”卡片使用该 URL，图片自然宽高大于 0，未显示占位符。
 
-- [ ] **Step 6: 清理与提交**
+- [x] **Step 6: 清理与提交**
 
 - 下架并删除临时数据库记录。
 - 删除临时 OSS 对象和相关 Redis 缓存。

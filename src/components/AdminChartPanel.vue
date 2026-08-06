@@ -18,13 +18,19 @@ const emit = defineEmits<{
   login: [provider: 'github' | 'google'];
   select: [chart: AdminChart];
   'update:status': [value: 'pending' | 'published'];
-  approve: [chart: AdminChart];
+  approve: [chart: AdminChart, thumbnail: string];
   reject: [chart: AdminChart, note: string];
   unpublish: [chart: AdminChart, note: string];
 }>();
 
+interface ChartPreviewHandle {
+  capture: () => Promise<string>;
+}
+
 const actionNote = ref('');
 const localError = ref('');
+const previewRef = ref<ChartPreviewHandle | null>(null);
+const capturing = ref(false);
 
 watch(
   () => [props.selected?.id, props.status],
@@ -48,6 +54,29 @@ function submitSecondaryAction() {
     emit('reject', props.selected, note);
   } else {
     emit('unpublish', props.selected, note);
+  }
+}
+
+async function submitApproval() {
+  const selected = props.selected;
+  if (!selected || !previewRef.value) {
+    localError.value = '图表预览尚未加载';
+    return;
+  }
+
+  capturing.value = true;
+  localError.value = '';
+  try {
+    const thumbnail = await previewRef.value.capture();
+    if (props.selected?.id !== selected.id) {
+      throw new Error('审核对象已变化，请重新确认');
+    }
+    emit('approve', selected, thumbnail);
+  } catch (error) {
+    localError.value =
+      error instanceof Error ? error.message : '缩略图生成失败';
+  } finally {
+    capturing.value = false;
   }
 }
 </script>
@@ -143,7 +172,7 @@ function submitSecondaryAction() {
             </dl>
           </div>
 
-          <ChartPreview :code="selected.code" />
+          <ChartPreview ref="previewRef" :code="selected.code" />
 
           <details class="review-code">
             <summary>查看源代码</summary>
@@ -154,10 +183,10 @@ function submitSecondaryAction() {
             <button
               class="approve-button"
               type="button"
-              :disabled="loading"
-              @click="emit('approve', selected)"
+              :disabled="loading || capturing"
+              @click="submitApproval"
             >
-              {{ loading ? '处理中' : '通过并发布' }}
+              {{ capturing ? '生成缩略图' : loading ? '处理中' : '通过并发布' }}
             </button>
             <label>
               拒绝原因
