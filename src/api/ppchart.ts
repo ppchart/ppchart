@@ -201,6 +201,9 @@ export async function fetchVisitStats(): Promise<VisitStats | null> {
 function normalizeSummary(item: ChartSummary): ChartSummary {
   return {
     ...item,
-    thumbnailURL: item.thumbnailURL || `${ASSET_BASE}/ecg-storage/ec_gallery_thumbnail/${item.cid}.jpg`
+    thumbnailURL:
+      item.cid.startsWith('user-') && item.thumbnailURL
+        ? item.thumbnailURL
+        : `${ASSET_BASE}/ecg-storage/ec_gallery_thumbnail/${item.cid}.jpg`
   };
 }
